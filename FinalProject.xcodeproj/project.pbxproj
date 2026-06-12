@@ -14,6 +14,19 @@
 		A6A4F4DC2FDB9EE70083B8D2 /* FinalProjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4DB2FDB9EE70083B8D2 /* FinalProjectTests.swift */; };
 		A6A4F4E62FDB9EE70083B8D2 /* FinalProjectUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4E52FDB9EE70083B8D2 /* FinalProjectUITests.swift */; };
 		A6A4F4E82FDB9EE70083B8D2 /* FinalProjectUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4E72FDB9EE70083B8D2 /* FinalProjectUITestsLaunchTests.swift */; };
+		SCSTDY001SCSTDY001SCBLDF /* StudyTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY001SCSTDY001SCSTDY /* StudyTheme.swift */; };
+		SCSTDY002SCSTDY002SCBLDF /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY002SCSTDY002SCSTDY /* Models.swift */; };
+		SCSTDY003SCSTDY003SCBLDF /* StudyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY003SCSTDY003SCSTDY /* StudyStore.swift */; };
+		SCSTDY004SCSTDY004SCBLDF /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY004SCSTDY004SCSTDY /* MainTabView.swift */; };
+		SCSTDY005SCSTDY005SCBLDF /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY005SCSTDY005SCSTDY /* DashboardView.swift */; };
+		SCSTDY006SCSTDY006SCBLDF /* PomodoroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY006SCSTDY006SCSTDY /* PomodoroView.swift */; };
+		SCSTDY007SCSTDY007SCBLDF /* PomodoroViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY007SCSTDY007SCSTDY /* PomodoroViewModel.swift */; };
+		SCSTDY008SCSTDY008SCBLDF /* SubjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY008SCSTDY008SCSTDY /* SubjectsView.swift */; };
+		SCSTDY009SCSTDY009SCBLDF /* SubjectsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY009SCSTDY009SCSTDY /* SubjectsViewModel.swift */; };
+		SCSTDY010SCSTDY010SCBLDF /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY010SCSTDY010SCSTDY /* AnalyticsView.swift */; };
+		SCSTDY011SCSTDY011SCBLDF /* AICoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY011SCSTDY011SCSTDY /* AICoachView.swift */; };
+		SCSTDY012SCSTDY012SCBLDF /* AICoachViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY012SCSTDY012SCSTDY /* AICoachViewModel.swift */; };
+		SCSTDY013SCSTDY013SCBLDF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY013SCSTDY013SCSTDY /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +58,19 @@
 		A6A4F4E12FDB9EE70083B8D2 /* FinalProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinalProjectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6A4F4E52FDB9EE70083B8D2 /* FinalProjectUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalProjectUITests.swift; sourceTree = "<group>"; };
 		A6A4F4E72FDB9EE70083B8D2 /* FinalProjectUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalProjectUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		SCSTDY001SCSTDY001SCSTDY /* StudyTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Theme/StudyTheme.swift"; sourceTree = "<group>"; };
+		SCSTDY002SCSTDY002SCSTDY /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models/Models.swift"; sourceTree = "<group>"; };
+		SCSTDY003SCSTDY003SCSTDY /* StudyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/StudyStore.swift"; sourceTree = "<group>"; };
+		SCSTDY004SCSTDY004SCSTDY /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		SCSTDY005SCSTDY005SCSTDY /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Dashboard/DashboardView.swift"; sourceTree = "<group>"; };
+		SCSTDY006SCSTDY006SCSTDY /* PomodoroView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Pomodoro/PomodoroView.swift"; sourceTree = "<group>"; };
+		SCSTDY007SCSTDY007SCSTDY /* PomodoroViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Pomodoro/PomodoroViewModel.swift"; sourceTree = "<group>"; };
+		SCSTDY008SCSTDY008SCSTDY /* SubjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Subjects/SubjectsView.swift"; sourceTree = "<group>"; };
+		SCSTDY009SCSTDY009SCSTDY /* SubjectsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Subjects/SubjectsViewModel.swift"; sourceTree = "<group>"; };
+		SCSTDY010SCSTDY010SCSTDY /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Analytics/AnalyticsView.swift"; sourceTree = "<group>"; };
+		SCSTDY011SCSTDY011SCSTDY /* AICoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/AICoach/AICoachView.swift"; sourceTree = "<group>"; };
+		SCSTDY012SCSTDY012SCSTDY /* AICoachViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/AICoach/AICoachViewModel.swift"; sourceTree = "<group>"; };
+		SCSTDY013SCSTDY013SCSTDY /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Settings/SettingsView.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +123,19 @@
 			children = (
 				A6A4F4C92FDB9EE10083B8D2 /* FinalProjectApp.swift */,
 				A6A4F4CB2FDB9EE10083B8D2 /* ContentView.swift */,
+				SCSTDY004SCSTDY004SCSTDY /* MainTabView.swift */,
+				SCSTDY001SCSTDY001SCSTDY /* StudyTheme.swift */,
+				SCSTDY002SCSTDY002SCSTDY /* Models.swift */,
+				SCSTDY003SCSTDY003SCSTDY /* StudyStore.swift */,
+				SCSTDY005SCSTDY005SCSTDY /* DashboardView.swift */,
+				SCSTDY006SCSTDY006SCSTDY /* PomodoroView.swift */,
+				SCSTDY007SCSTDY007SCSTDY /* PomodoroViewModel.swift */,
+				SCSTDY008SCSTDY008SCSTDY /* SubjectsView.swift */,
+				SCSTDY009SCSTDY009SCSTDY /* SubjectsViewModel.swift */,
+				SCSTDY010SCSTDY010SCSTDY /* AnalyticsView.swift */,
+				SCSTDY011SCSTDY011SCSTDY /* AICoachView.swift */,
+				SCSTDY012SCSTDY012SCSTDY /* AICoachViewModel.swift */,
+				SCSTDY013SCSTDY013SCSTDY /* SettingsView.swift */,
 				A6A4F4CD2FDB9EE70083B8D2 /* Assets.xcassets */,
 				A6A4F4CF2FDB9EE70083B8D2 /* FinalProject.entitlements */,
 				A6A4F4D02FDB9EE70083B8D2 /* Preview Content */,
@@ -261,6 +300,19 @@
 			files = (
 				A6A4F4CC2FDB9EE10083B8D2 /* ContentView.swift in Sources */,
 				A6A4F4CA2FDB9EE10083B8D2 /* FinalProjectApp.swift in Sources */,
+				SCSTDY001SCSTDY001SCBLDF /* StudyTheme.swift in Sources */,
+				SCSTDY002SCSTDY002SCBLDF /* Models.swift in Sources */,
+				SCSTDY003SCSTDY003SCBLDF /* StudyStore.swift in Sources */,
+				SCSTDY004SCSTDY004SCBLDF /* MainTabView.swift in Sources */,
+				SCSTDY005SCSTDY005SCBLDF /* DashboardView.swift in Sources */,
+				SCSTDY006SCSTDY006SCBLDF /* PomodoroView.swift in Sources */,
+				SCSTDY007SCSTDY007SCBLDF /* PomodoroViewModel.swift in Sources */,
+				SCSTDY008SCSTDY008SCBLDF /* SubjectsView.swift in Sources */,
+				SCSTDY009SCSTDY009SCBLDF /* SubjectsViewModel.swift in Sources */,
+				SCSTDY010SCSTDY010SCBLDF /* AnalyticsView.swift in Sources */,
+				SCSTDY011SCSTDY011SCBLDF /* AICoachView.swift in Sources */,
+				SCSTDY012SCSTDY012SCBLDF /* AICoachViewModel.swift in Sources */,
+				SCSTDY013SCSTDY013SCBLDF /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
