@@ -2,6 +2,8 @@ import SwiftUI
 
 struct DashboardView: View {
     @EnvironmentObject var store: LearningStore
+    @Binding var selectedTab: Int
+    @State private var showSettings = false
 
     var body: some View {
         NavigationStack {
@@ -18,8 +20,12 @@ struct DashboardView: View {
                 .padding(.horizontal, StudySpacing.large)
                 .padding(.bottom, StudySpacing.xxLarge)
             }
-            .background(StudyTheme.background.ignoresSafeArea())
+            .background(StudyTheme.backgroundGradient.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+                .environmentObject(store)
         }
     }
 
@@ -27,7 +33,7 @@ struct DashboardView: View {
 
     private var heroBanner: some View {
         VStack(alignment: .leading, spacing: StudySpacing.small) {
-            HStack {
+            HStack(spacing: StudySpacing.small) {
                 Text(greetingText.uppercased())
                     .font(StudyFont.tiny)
                     .foregroundStyle(.white.opacity(0.60))
@@ -41,10 +47,18 @@ struct DashboardView: View {
                         Text("\(store.currentStreak) day streak")
                     }
                     .font(StudyFont.tiny)
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(.white.opacity(0.90))
                     .padding(.horizontal, 10).padding(.vertical, 5)
-                    .background(.white.opacity(0.12))
-                    .clipShape(Capsule())
+                    .background(.white.opacity(0.14), in: Capsule())
+                }
+                // Settings gear
+                Button { showSettings = true } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.80))
+                        .frame(width: 32, height: 32)
+                        .background(.white.opacity(0.14))
+                        .clipShape(Circle())
                 }
             }
 
@@ -66,20 +80,26 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             ZStack(alignment: .topTrailing) {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                RoundedRectangle(cornerRadius: StudyRadius.xLarge, style: .continuous)
                     .fill(StudyTheme.focusGradient)
                 Circle()
-                    .fill(.white.opacity(0.05))
-                    .frame(width: 160, height: 160)
-                    .offset(x: 40, y: -50)
+                    .fill(StudyTheme.longBreakColor.opacity(0.35))
+                    .frame(width: 180, height: 180)
+                    .blur(radius: 50)
+                    .offset(x: 60, y: -70)
                 Circle()
-                    .fill(.white.opacity(0.04))
-                    .frame(width: 90, height: 90)
-                    .offset(x: 10, y: 30)
+                    .fill(StudyTheme.accent.opacity(0.25))
+                    .frame(width: 120, height: 120)
+                    .blur(radius: 40)
+                    .offset(x: -10, y: 60)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: StudyRadius.xLarge, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: StudyRadius.xLarge, style: .continuous)
+                    .stroke(Color.white.opacity(0.10), lineWidth: 1)
+            )
         )
-        .shadow(color: Color(red: 0.08, green: 0.14, blue: 0.50).opacity(0.55), radius: 20, x: 0, y: 10)
+        .shadow(color: StudyTheme.accentGlow.opacity(0.45), radius: 24, x: 0, y: 12)
         .padding(.top, StudySpacing.medium)
     }
 
@@ -94,10 +114,10 @@ struct DashboardView: View {
 
     private var motivationalText: String {
         switch store.totalQuizzesTaken {
-        case 0:    return "Start your first quiz or flashcard session today."
+        case 0:     return "Start your first quiz or flashcard session today."
         case 1...3: return "Good start — keep building your knowledge."
         case 4...9: return "You're on a roll. Keep the momentum going."
-        default:   return "Excellent consistency. Your hard work is paying off."
+        default:    return "Excellent consistency. Your hard work is paying off."
         }
     }
 
@@ -105,35 +125,40 @@ struct DashboardView: View {
 
     private var quickActionsRow: some View {
         HStack(spacing: StudySpacing.medium) {
-            quickAction(icon: "brain.head.profile", label: "Ask Tutor",   color: StudyTheme.accent)
-            quickAction(icon: "checkmark.circle",   label: "New Quiz",    color: StudyTheme.shortBreakColor)
-            quickAction(icon: "rectangle.on.rectangle", label: "Flashcards", color: StudyTheme.longBreakColor)
+            quickAction(icon: "brain.head.profile", label: "Ask Tutor",
+                        color: StudyTheme.accent, tab: 1)
+            quickAction(icon: "checkmark.circle",   label: "New Quiz",
+                        color: StudyTheme.shortBreakColor, tab: 3)
+            quickAction(icon: "rectangle.on.rectangle", label: "Flashcards",
+                        color: StudyTheme.longBreakColor, tab: 3)
         }
     }
 
-    private func quickAction(icon: String, label: String, color: Color) -> some View {
-        VStack(spacing: 8) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(color.opacity(0.14))
-                    .frame(width: 52, height: 52)
-                Image(systemName: icon)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(color)
+    private func quickAction(icon: String, label: String, color: Color, tab: Int) -> some View {
+        Button { selectedTab = tab } label: {
+            VStack(spacing: 8) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(color.opacity(0.14))
+                        .frame(width: 52, height: 52)
+                    Image(systemName: icon)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(color)
+                }
+                Text(label)
+                    .font(StudyFont.tiny)
+                    .foregroundStyle(StudyTheme.secondaryText)
+                    .multilineTextAlignment(.center)
             }
-            Text(label)
-                .font(StudyFont.tiny)
-                .foregroundStyle(StudyTheme.secondaryText)
-                .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, StudySpacing.medium)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(StudyTheme.surface)
+                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(StudyTheme.surfaceStroke, lineWidth: 1))
+            )
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, StudySpacing.medium)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(StudyTheme.surface)
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(StudyTheme.surfaceStroke, lineWidth: 1))
-        )
     }
 
     // MARK: - Recent Quizzes
@@ -168,6 +193,13 @@ struct DashboardView: View {
                     if session.id != store.recentQuizSessions.prefix(3).last?.id {
                         Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
                     }
+                }
+                Button { selectedTab = 3 } label: {
+                    Text("View All Quizzes →")
+                        .font(StudyFont.tiny)
+                        .foregroundStyle(StudyTheme.accent)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.top, 4)
                 }
             }
         }
@@ -206,6 +238,13 @@ struct DashboardView: View {
                         Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
                     }
                 }
+                Button { selectedTab = 3 } label: {
+                    Text("View All Decks →")
+                        .font(StudyFont.tiny)
+                        .foregroundStyle(StudyTheme.accent)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.top, 4)
+                }
             }
         }
     }
@@ -225,6 +264,23 @@ struct DashboardView: View {
                     .font(StudyFont.body)
                     .foregroundStyle(StudyTheme.secondaryText)
                     .multilineTextAlignment(.center)
+
+                HStack(spacing: StudySpacing.medium) {
+                    Button { selectedTab = 1 } label: {
+                        Text("Ask Tutor")
+                            .font(StudyFont.subtitle)
+                            .frame(maxWidth: .infinity).frame(height: 44)
+                    }
+                    .buttonStyle(PrimaryStudyButtonStyle())
+
+                    Button { selectedTab = 3 } label: {
+                        Text("Start Learning")
+                            .font(StudyFont.subtitle)
+                            .frame(maxWidth: .infinity).frame(height: 44)
+                    }
+                    .buttonStyle(GhostStudyButtonStyle())
+                }
+                .padding(.top, 4)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, StudySpacing.small)

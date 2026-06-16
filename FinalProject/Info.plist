@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>GoogleSignIn</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.98999580755-oe5nngqtjh4nor48pobb6jq3bfk1alf9</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSHealthShareUsageDescription</key>
+	<string>AI Academic Mentor reads your daily step count and sleep data to display in your learning progress dashboard.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>AI Academic Mentor uses the microphone so you can speak your questions to the AI Tutor.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>AI Academic Mentor uses speech recognition to convert your voice into text for the AI Tutor.</string>
+</dict>
+</plist>

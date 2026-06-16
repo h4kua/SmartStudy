@@ -6,6 +6,7 @@ import SwiftUI
 struct AITutorView: View {
     @EnvironmentObject var store: LearningStore
     @StateObject private var vm = AITutorViewModel()
+    @ObservedObject private var speech = SpeechService.shared
 
     var body: some View {
         NavigationStack {
@@ -14,7 +15,7 @@ struct AITutorView: View {
                 messageList
                 inputBar
             }
-            .background(StudyTheme.background.ignoresSafeArea())
+            .background(StudyTheme.backgroundGradient.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
         }
     }
@@ -120,14 +121,20 @@ struct AITutorView: View {
             }
             Text(msg.content)
                 .font(StudyFont.body)
-                .foregroundStyle(.white)
+                .foregroundStyle(isUser ? .white : StudyTheme.primaryText)
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 .background(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(isUser
                               ? AnyShapeStyle(StudyTheme.accentGradient)
                               : AnyShapeStyle(StudyTheme.surface2))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .stroke(isUser ? Color.clear : StudyTheme.surfaceStroke, lineWidth: 1)
+                        )
                 )
+                .shadow(color: isUser ? StudyTheme.accentGlow.opacity(0.35) : .clear,
+                        radius: 10, x: 0, y: 4)
                 .frame(maxWidth: 292, alignment: isUser ? .trailing : .leading)
             if !isUser { Spacer(minLength: 52) }
         }
@@ -137,38 +144,66 @@ struct AITutorView: View {
     // MARK: - Input bar
 
     private var inputBar: some View {
-        HStack(spacing: StudySpacing.small) {
-            TextField("Ask your tutor...", text: $vm.inputText, axis: .vertical)
-                .font(StudyFont.body)
-                .foregroundStyle(StudyTheme.primaryText)
-                .lineLimit(1...4)
-                .padding(.horizontal, StudySpacing.medium)
-                .padding(.vertical, 10)
-                .background(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(StudyTheme.surface2)
-                        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .stroke(StudyTheme.surfaceStroke, lineWidth: 1))
-                )
-                .onSubmit { Task { await vm.send() } }
-
-            let isEmpty = vm.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            Button { Task { await vm.send() } } label: {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 32))
-                    .foregroundStyle(isEmpty ? StudyTheme.tertiaryText : StudyTheme.accent)
-                    .animation(.easeOut(duration: 0.15), value: isEmpty)
-            }
-            .disabled(isEmpty || vm.isLoading)
-        }
-        .padding(.horizontal, StudySpacing.large)
-        .padding(.vertical, StudySpacing.medium)
-        .background(
-            StudyTheme.surface
-                .overlay(alignment: .top) {
-                    Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
+        VStack(spacing: 0) {
+            if speech.isListening {
+                HStack(spacing: 6) {
+                    Circle().fill(Color.red).frame(width: 7, height: 7)
+                        .opacity(speech.isListening ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.6).repeatForever(), value: speech.isListening)
+                    Text(speech.transcript.isEmpty ? "Listening..." : speech.transcript)
+                        .font(StudyFont.caption)
+                        .foregroundStyle(StudyTheme.secondaryText)
+                        .lineLimit(2)
+                    Spacer()
                 }
-        )
+                .padding(.horizontal, StudySpacing.large)
+                .padding(.vertical, 6)
+                .background(StudyTheme.surface2)
+            }
+
+            HStack(spacing: StudySpacing.small) {
+                Button { vm.toggleRecording() } label: {
+                    Image(systemName: speech.isListening ? "stop.circle.fill" : "mic.circle.fill")
+                        .font(.system(size: 32))
+                        .foregroundStyle(speech.isListening ? Color.red : StudyTheme.secondaryText)
+                        .animation(.easeOut(duration: 0.15), value: speech.isListening)
+                }
+
+                TextField("Ask your tutor...", text: $vm.inputText, axis: .vertical)
+                    .font(StudyFont.body)
+                    .foregroundStyle(StudyTheme.primaryText)
+                    .lineLimit(1...4)
+                    .padding(.horizontal, StudySpacing.medium)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .fill(StudyTheme.surface2)
+                            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .stroke(StudyTheme.surfaceStroke, lineWidth: 1))
+                    )
+                    .onSubmit { Task { await vm.send() } }
+
+                let isEmpty = vm.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                Button { Task { await vm.send() } } label: {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 32))
+                        .foregroundStyle(isEmpty ? StudyTheme.tertiaryText : StudyTheme.accent)
+                        .animation(.easeOut(duration: 0.15), value: isEmpty)
+                }
+                .disabled(isEmpty || vm.isLoading)
+            }
+            .padding(.horizontal, StudySpacing.large)
+            .padding(.vertical, StudySpacing.medium)
+            .background(
+                StudyTheme.surface
+                    .overlay(alignment: .top) {
+                        Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
+                    }
+            )
+        }
+        .onChange(of: speech.transcript) { newValue in
+            if speech.isListening { vm.inputText = newValue }
+        }
     }
 }
 

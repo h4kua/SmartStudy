@@ -9,9 +9,7 @@
 /* Begin PBXBuildFile section */
 		A63CBD552FDBB0CF0086CC37 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A63CBD542FDBB0CF0086CC37 /* GoogleSignIn */; };
 		A63CBD572FDBB0CF0086CC37 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A63CBD562FDBB0CF0086CC37 /* GoogleSignInSwift */; };
-		A63CBD592FDBB1F90086CC37 /* Features in Resources */ = {isa = PBXBuildFile; fileRef = A63CBD582FDBB1F90086CC37 /* Features */; };
 		A6A4F4CA2FDB9EE10083B8D2 /* FinalProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4C92FDB9EE10083B8D2 /* FinalProjectApp.swift */; };
-		A6A4F4CC2FDB9EE10083B8D2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4CB2FDB9EE10083B8D2 /* ContentView.swift */; };
 		A6A4F4CE2FDB9EE70083B8D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6A4F4CD2FDB9EE70083B8D2 /* Assets.xcassets */; };
 		A6A4F4D22FDB9EE70083B8D2 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6A4F4D12FDB9EE70083B8D2 /* Preview Assets.xcassets */; };
 		A6A4F4DC2FDB9EE70083B8D2 /* FinalProjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4DB2FDB9EE70083B8D2 /* FinalProjectTests.swift */; };
@@ -19,16 +17,9 @@
 		A6A4F4E82FDB9EE70083B8D2 /* FinalProjectUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4E72FDB9EE70083B8D2 /* FinalProjectUITestsLaunchTests.swift */; };
 		SCSTDY001SCSTDY001SCBLDF /* Theme/StudyTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY001SCSTDY001SCSTDY /* Theme/StudyTheme.swift */; };
 		SCSTDY002SCSTDY002SCBLDF /* Models/Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY002SCSTDY002SCSTDY /* Models/Models.swift */; };
-		SCSTDY003SCSTDY003SCBLDF /* Services/StudyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY003SCSTDY003SCSTDY /* Services/StudyStore.swift */; };
 		SCSTDY004SCSTDY004SCBLDF /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY004SCSTDY004SCSTDY /* MainTabView.swift */; };
 		SCSTDY005SCSTDY005SCBLDF /* Features/Dashboard/DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY005SCSTDY005SCSTDY /* Features/Dashboard/DashboardView.swift */; };
-		SCSTDY006SCSTDY006SCBLDF /* Features/Pomodoro/PomodoroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY006SCSTDY006SCSTDY /* Features/Pomodoro/PomodoroView.swift */; };
-		SCSTDY007SCSTDY007SCBLDF /* Features/Pomodoro/PomodoroViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY007SCSTDY007SCSTDY /* Features/Pomodoro/PomodoroViewModel.swift */; };
-		SCSTDY008SCSTDY008SCBLDF /* Features/Subjects/SubjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY008SCSTDY008SCSTDY /* Features/Subjects/SubjectsView.swift */; };
-		SCSTDY009SCSTDY009SCBLDF /* Features/Subjects/SubjectsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY009SCSTDY009SCSTDY /* Features/Subjects/SubjectsViewModel.swift */; };
 		SCSTDY010SCSTDY010SCBLDF /* Features/Analytics/AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY010SCSTDY010SCSTDY /* Features/Analytics/AnalyticsView.swift */; };
-		SCSTDY011SCSTDY011SCBLDF /* Features/AICoach/AICoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY011SCSTDY011SCSTDY /* Features/AICoach/AICoachView.swift */; };
-		SCSTDY012SCSTDY012SCBLDF /* Features/AICoach/AICoachViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY012SCSTDY012SCSTDY /* Features/AICoach/AICoachViewModel.swift */; };
 		SCSTDY013SCSTDY013SCBLDF /* Features/Settings/SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY013SCSTDY013SCSTDY /* Features/Settings/SettingsView.swift */; };
 		SCSTDY014SCSTDY014SCBLDF /* Services/GroqService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY014SCSTDY014SCSTDY /* Services/GroqService.swift */; };
 		SCSTDY015SCSTDY015SCBLDF /* Services/LearningStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY015SCSTDY015SCSTDY /* Services/LearningStore.swift */; };
@@ -43,6 +34,10 @@
 		SCSTDY024SCSTDY024SCBLDF /* Features/Learn/Flashcards/FlashcardsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY024SCSTDY024SCSTDY /* Features/Learn/Flashcards/FlashcardsViewModel.swift */; };
 		SCSTDY025SCSTDY025SCBLDF /* Features/Learn/Flashcards/FlashcardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY025SCSTDY025SCSTDY /* Features/Learn/Flashcards/FlashcardsView.swift */; };
 		SCSTDY026SCSTDY026SCBLDF /* Features/Learn/Flashcards/FlashcardReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY026SCSTDY026SCSTDY /* Features/Learn/Flashcards/FlashcardReviewView.swift */; };
+		HLTHSVC001HLTHSVC001BLDF /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = HLTHSVC001HLTHSVC001STDY /* HealthKitService.swift */; };
+		SPCHSVC001SPCHSVC001BLDF /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPCHSVC001SPCHSVC001STDY /* SpeechService.swift */; };
+		HLTHFRMWK001HLTHFRMWK_BF /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = HLTHFRMWK001HLTHFRMWK_RF /* HealthKit.framework */; };
+		SPCHFRMWK001SPCHFRMWK_BF /* Speech.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = SPCHFRMWK001SPCHFRMWK_RF /* Speech.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,11 +58,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A63CBD582FDBB1F90086CC37 /* Features */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Features; sourceTree = "<group>"; };
 		A63CBD5A2FDBB2CF0086CC37 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A6A4F4C62FDB9EE10083B8D2 /* FinalProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinalProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6A4F4C92FDB9EE10083B8D2 /* FinalProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalProjectApp.swift; sourceTree = "<group>"; };
-		A6A4F4CB2FDB9EE10083B8D2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A6A4F4CD2FDB9EE70083B8D2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A6A4F4CF2FDB9EE70083B8D2 /* FinalProject.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FinalProject.entitlements; sourceTree = "<group>"; };
 		A6A4F4D12FDB9EE70083B8D2 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -76,32 +69,29 @@
 		A6A4F4E12FDB9EE70083B8D2 /* FinalProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinalProjectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6A4F4E52FDB9EE70083B8D2 /* FinalProjectUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalProjectUITests.swift; sourceTree = "<group>"; };
 		A6A4F4E72FDB9EE70083B8D2 /* FinalProjectUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalProjectUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		SCSTDY001SCSTDY001SCSTDY /* Theme/StudyTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme/StudyTheme.swift; sourceTree = "<group>"; };
-		SCSTDY002SCSTDY002SCSTDY /* Models/Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/Models.swift; sourceTree = "<group>"; };
-		SCSTDY003SCSTDY003SCSTDY /* Services/StudyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyStore.swift; sourceTree = "<group>"; };
+		SCSTDY001SCSTDY001SCSTDY /* StudyTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyTheme.swift; sourceTree = "<group>"; };
+		SCSTDY002SCSTDY002SCSTDY /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		SCSTDY004SCSTDY004SCSTDY /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
-		SCSTDY005SCSTDY005SCSTDY /* Features/Dashboard/DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Dashboard/DashboardView.swift; sourceTree = "<group>"; };
-		SCSTDY006SCSTDY006SCSTDY /* Features/Pomodoro/PomodoroView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Pomodoro/PomodoroView.swift; sourceTree = "<group>"; };
-		SCSTDY007SCSTDY007SCSTDY /* Features/Pomodoro/PomodoroViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Pomodoro/PomodoroViewModel.swift; sourceTree = "<group>"; };
-		SCSTDY008SCSTDY008SCSTDY /* Features/Subjects/SubjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Subjects/SubjectsView.swift; sourceTree = "<group>"; };
-		SCSTDY009SCSTDY009SCSTDY /* Features/Subjects/SubjectsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Subjects/SubjectsViewModel.swift; sourceTree = "<group>"; };
-		SCSTDY010SCSTDY010SCSTDY /* Features/Analytics/AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Analytics/AnalyticsView.swift; sourceTree = "<group>"; };
-		SCSTDY011SCSTDY011SCSTDY /* Features/AICoach/AICoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/AICoach/AICoachView.swift; sourceTree = "<group>"; };
-		SCSTDY012SCSTDY012SCSTDY /* Features/AICoach/AICoachViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/AICoach/AICoachViewModel.swift; sourceTree = "<group>"; };
-		SCSTDY013SCSTDY013SCSTDY /* Features/Settings/SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Settings/SettingsView.swift; sourceTree = "<group>"; };
-		SCSTDY014SCSTDY014SCSTDY /* Services/GroqService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/GroqService.swift; sourceTree = "<group>"; };
-		SCSTDY015SCSTDY015SCSTDY /* Services/LearningStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LearningStore.swift; sourceTree = "<group>"; };
-		SCSTDY016SCSTDY016SCSTDY /* Features/AITutor/AITutorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/AITutor/AITutorView.swift; sourceTree = "<group>"; };
-		SCSTDY017SCSTDY017SCSTDY /* Features/AITutor/AITutorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/AITutor/AITutorViewModel.swift; sourceTree = "<group>"; };
-		SCSTDY018SCSTDY018SCSTDY /* Features/DocumentAnalyzer/DocumentAnalyzerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/DocumentAnalyzer/DocumentAnalyzerView.swift; sourceTree = "<group>"; };
-		SCSTDY019SCSTDY019SCSTDY /* Features/Learn/LearnHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learn/LearnHubView.swift; sourceTree = "<group>"; };
-		SCSTDY020SCSTDY020SCSTDY /* Features/DocumentAnalyzer/DocumentAnalyzerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/DocumentAnalyzer/DocumentAnalyzerViewModel.swift; sourceTree = "<group>"; };
-		SCSTDY021SCSTDY021SCSTDY /* Features/Learn/Quiz/QuizViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learn/Quiz/QuizViewModel.swift; sourceTree = "<group>"; };
-		SCSTDY022SCSTDY022SCSTDY /* Features/Learn/Quiz/QuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learn/Quiz/QuizView.swift; sourceTree = "<group>"; };
-		SCSTDY023SCSTDY023SCSTDY /* Features/Learn/Quiz/QuizSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learn/Quiz/QuizSessionView.swift; sourceTree = "<group>"; };
-		SCSTDY024SCSTDY024SCSTDY /* Features/Learn/Flashcards/FlashcardsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learn/Flashcards/FlashcardsViewModel.swift; sourceTree = "<group>"; };
-		SCSTDY025SCSTDY025SCSTDY /* Features/Learn/Flashcards/FlashcardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learn/Flashcards/FlashcardsView.swift; sourceTree = "<group>"; };
-		SCSTDY026SCSTDY026SCSTDY /* Features/Learn/Flashcards/FlashcardReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learn/Flashcards/FlashcardReviewView.swift; sourceTree = "<group>"; };
+		SCSTDY005SCSTDY005SCSTDY /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		SCSTDY010SCSTDY010SCSTDY /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
+		SCSTDY013SCSTDY013SCSTDY /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		SCSTDY014SCSTDY014SCSTDY /* GroqService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroqService.swift; sourceTree = "<group>"; };
+		SCSTDY015SCSTDY015SCSTDY /* LearningStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningStore.swift; sourceTree = "<group>"; };
+		SCSTDY016SCSTDY016SCSTDY /* AITutorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITutorView.swift; sourceTree = "<group>"; };
+		SCSTDY017SCSTDY017SCSTDY /* AITutorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITutorViewModel.swift; sourceTree = "<group>"; };
+		SCSTDY018SCSTDY018SCSTDY /* DocumentAnalyzerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentAnalyzerView.swift; sourceTree = "<group>"; };
+		SCSTDY019SCSTDY019SCSTDY /* LearnHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnHubView.swift; sourceTree = "<group>"; };
+		SCSTDY020SCSTDY020SCSTDY /* DocumentAnalyzerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentAnalyzerViewModel.swift; sourceTree = "<group>"; };
+		SCSTDY021SCSTDY021SCSTDY /* QuizViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizViewModel.swift; sourceTree = "<group>"; };
+		SCSTDY022SCSTDY022SCSTDY /* QuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizView.swift; sourceTree = "<group>"; };
+		SCSTDY023SCSTDY023SCSTDY /* QuizSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizSessionView.swift; sourceTree = "<group>"; };
+		SCSTDY024SCSTDY024SCSTDY /* FlashcardsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardsViewModel.swift; sourceTree = "<group>"; };
+		SCSTDY025SCSTDY025SCSTDY /* FlashcardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardsView.swift; sourceTree = "<group>"; };
+		SCSTDY026SCSTDY026SCSTDY /* FlashcardReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardReviewView.swift; sourceTree = "<group>"; };
+		HLTHSVC001HLTHSVC001STDY /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		SPCHSVC001SPCHSVC001STDY /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
+		HLTHFRMWK001HLTHFRMWK_RF /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
+		SPCHFRMWK001SPCHFRMWK_RF /* Speech.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Speech.framework; path = System/Library/Frameworks/Speech.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +101,8 @@
 			files = (
 				A63CBD552FDBB0CF0086CC37 /* GoogleSignIn in Frameworks */,
 				A63CBD572FDBB0CF0086CC37 /* GoogleSignInSwift in Frameworks */,
+				HLTHFRMWK001HLTHFRMWK_BF /* HealthKit.framework in Frameworks */,
+				SPCHFRMWK001SPCHFRMWK_BF /* Speech.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -154,41 +146,130 @@
 		A6A4F4C82FDB9EE10083B8D2 /* FinalProject */ = {
 			isa = PBXGroup;
 			children = (
-				A63CBD5A2FDBB2CF0086CC37 /* Info.plist */,
-				A63CBD582FDBB1F90086CC37 /* Features */,
 				A6A4F4C92FDB9EE10083B8D2 /* FinalProjectApp.swift */,
-				A6A4F4CB2FDB9EE10083B8D2 /* ContentView.swift */,
 				SCSTDY004SCSTDY004SCSTDY /* MainTabView.swift */,
-				SCSTDY001SCSTDY001SCSTDY /* Theme/StudyTheme.swift */,
-				SCSTDY002SCSTDY002SCSTDY /* Models/Models.swift */,
-				SCSTDY003SCSTDY003SCSTDY /* Services/StudyStore.swift */,
-				SCSTDY005SCSTDY005SCSTDY /* Features/Dashboard/DashboardView.swift */,
-				SCSTDY006SCSTDY006SCSTDY /* Features/Pomodoro/PomodoroView.swift */,
-				SCSTDY007SCSTDY007SCSTDY /* Features/Pomodoro/PomodoroViewModel.swift */,
-				SCSTDY008SCSTDY008SCSTDY /* Features/Subjects/SubjectsView.swift */,
-				SCSTDY009SCSTDY009SCSTDY /* Features/Subjects/SubjectsViewModel.swift */,
-				SCSTDY010SCSTDY010SCSTDY /* Features/Analytics/AnalyticsView.swift */,
-				SCSTDY011SCSTDY011SCSTDY /* Features/AICoach/AICoachView.swift */,
-				SCSTDY012SCSTDY012SCSTDY /* Features/AICoach/AICoachViewModel.swift */,
-				SCSTDY013SCSTDY013SCSTDY /* Features/Settings/SettingsView.swift */,
-				SCSTDY014SCSTDY014SCSTDY /* Services/GroqService.swift */,
-				SCSTDY015SCSTDY015SCSTDY /* Services/LearningStore.swift */,
-				SCSTDY016SCSTDY016SCSTDY /* Features/AITutor/AITutorView.swift */,
-				SCSTDY017SCSTDY017SCSTDY /* Features/AITutor/AITutorViewModel.swift */,
-				SCSTDY018SCSTDY018SCSTDY /* Features/DocumentAnalyzer/DocumentAnalyzerView.swift */,
-				SCSTDY019SCSTDY019SCSTDY /* Features/Learn/LearnHubView.swift */,
-				SCSTDY020SCSTDY020SCSTDY /* Features/DocumentAnalyzer/DocumentAnalyzerViewModel.swift */,
-				SCSTDY021SCSTDY021SCSTDY /* Features/Learn/Quiz/QuizViewModel.swift */,
-				SCSTDY022SCSTDY022SCSTDY /* Features/Learn/Quiz/QuizView.swift */,
-				SCSTDY023SCSTDY023SCSTDY /* Features/Learn/Quiz/QuizSessionView.swift */,
-				SCSTDY024SCSTDY024SCSTDY /* Features/Learn/Flashcards/FlashcardsViewModel.swift */,
-				SCSTDY025SCSTDY025SCSTDY /* Features/Learn/Flashcards/FlashcardsView.swift */,
-				SCSTDY026SCSTDY026SCSTDY /* Features/Learn/Flashcards/FlashcardReviewView.swift */,
+				GRP_FEAT_0000000000001 /* Features */,
+				GRP_MODL_0000000000010 /* Models */,
+				GRP_SRVC_0000000000011 /* Services */,
+				GRP_THEM_0000000000012 /* Theme */,
 				A6A4F4CD2FDB9EE70083B8D2 /* Assets.xcassets */,
 				A6A4F4CF2FDB9EE70083B8D2 /* FinalProject.entitlements */,
+				A63CBD5A2FDBB2CF0086CC37 /* Info.plist */,
 				A6A4F4D02FDB9EE70083B8D2 /* Preview Content */,
 			);
 			path = FinalProject;
+			sourceTree = "<group>";
+		};
+		GRP_FEAT_0000000000001 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				GRP_DASH_0000000000002 /* Dashboard */,
+				GRP_TUTO_0000000000003 /* AITutor */,
+				GRP_DOCS_0000000000004 /* DocumentAnalyzer */,
+				GRP_LERN_0000000000005 /* Learn */,
+				GRP_ANLT_0000000000008 /* Analytics */,
+				GRP_SETT_0000000000009 /* Settings */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		GRP_DASH_0000000000002 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				SCSTDY005SCSTDY005SCSTDY /* DashboardView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		GRP_TUTO_0000000000003 /* AITutor */ = {
+			isa = PBXGroup;
+			children = (
+				SCSTDY016SCSTDY016SCSTDY /* AITutorView.swift */,
+				SCSTDY017SCSTDY017SCSTDY /* AITutorViewModel.swift */,
+			);
+			path = AITutor;
+			sourceTree = "<group>";
+		};
+		GRP_DOCS_0000000000004 /* DocumentAnalyzer */ = {
+			isa = PBXGroup;
+			children = (
+				SCSTDY018SCSTDY018SCSTDY /* DocumentAnalyzerView.swift */,
+				SCSTDY020SCSTDY020SCSTDY /* DocumentAnalyzerViewModel.swift */,
+			);
+			path = DocumentAnalyzer;
+			sourceTree = "<group>";
+		};
+		GRP_LERN_0000000000005 /* Learn */ = {
+			isa = PBXGroup;
+			children = (
+				SCSTDY019SCSTDY019SCSTDY /* LearnHubView.swift */,
+				GRP_QUIZ_0000000000006 /* Quiz */,
+				GRP_FLSH_0000000000007 /* Flashcards */,
+			);
+			path = Learn;
+			sourceTree = "<group>";
+		};
+		GRP_QUIZ_0000000000006 /* Quiz */ = {
+			isa = PBXGroup;
+			children = (
+				SCSTDY022SCSTDY022SCSTDY /* QuizView.swift */,
+				SCSTDY023SCSTDY023SCSTDY /* QuizSessionView.swift */,
+				SCSTDY021SCSTDY021SCSTDY /* QuizViewModel.swift */,
+			);
+			path = Quiz;
+			sourceTree = "<group>";
+		};
+		GRP_FLSH_0000000000007 /* Flashcards */ = {
+			isa = PBXGroup;
+			children = (
+				SCSTDY025SCSTDY025SCSTDY /* FlashcardsView.swift */,
+				SCSTDY026SCSTDY026SCSTDY /* FlashcardReviewView.swift */,
+				SCSTDY024SCSTDY024SCSTDY /* FlashcardsViewModel.swift */,
+			);
+			path = Flashcards;
+			sourceTree = "<group>";
+		};
+		GRP_ANLT_0000000000008 /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				SCSTDY010SCSTDY010SCSTDY /* AnalyticsView.swift */,
+			);
+			path = Analytics;
+			sourceTree = "<group>";
+		};
+		GRP_SETT_0000000000009 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				SCSTDY013SCSTDY013SCSTDY /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		GRP_MODL_0000000000010 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				SCSTDY002SCSTDY002SCSTDY /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		GRP_SRVC_0000000000011 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				SCSTDY014SCSTDY014SCSTDY /* GroqService.swift */,
+				SCSTDY015SCSTDY015SCSTDY /* LearningStore.swift */,
+				HLTHSVC001HLTHSVC001STDY /* HealthKitService.swift */,
+				SPCHSVC001SPCHSVC001STDY /* SpeechService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		GRP_THEM_0000000000012 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				SCSTDY001SCSTDY001SCSTDY /* StudyTheme.swift */,
+			);
+			path = Theme;
 			sourceTree = "<group>";
 		};
 		A6A4F4D02FDB9EE70083B8D2 /* Preview Content */ = {
@@ -327,7 +408,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A63CBD592FDBB1F90086CC37 /* Features in Resources */,
 				A6A4F4D22FDB9EE70083B8D2 /* Preview Assets.xcassets in Resources */,
 				A6A4F4CE2FDB9EE70083B8D2 /* Assets.xcassets in Resources */,
 			);
@@ -354,20 +434,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A6A4F4CC2FDB9EE10083B8D2 /* ContentView.swift in Sources */,
 				A6A4F4CA2FDB9EE10083B8D2 /* FinalProjectApp.swift in Sources */,
 				SCSTDY001SCSTDY001SCBLDF /* Theme/StudyTheme.swift in Sources */,
 				SCSTDY002SCSTDY002SCBLDF /* Models/Models.swift in Sources */,
-				SCSTDY003SCSTDY003SCBLDF /* Services/StudyStore.swift in Sources */,
 				SCSTDY004SCSTDY004SCBLDF /* MainTabView.swift in Sources */,
 				SCSTDY005SCSTDY005SCBLDF /* Features/Dashboard/DashboardView.swift in Sources */,
-				SCSTDY006SCSTDY006SCBLDF /* Features/Pomodoro/PomodoroView.swift in Sources */,
-				SCSTDY007SCSTDY007SCBLDF /* Features/Pomodoro/PomodoroViewModel.swift in Sources */,
-				SCSTDY008SCSTDY008SCBLDF /* Features/Subjects/SubjectsView.swift in Sources */,
-				SCSTDY009SCSTDY009SCBLDF /* Features/Subjects/SubjectsViewModel.swift in Sources */,
 				SCSTDY010SCSTDY010SCBLDF /* Features/Analytics/AnalyticsView.swift in Sources */,
-				SCSTDY011SCSTDY011SCBLDF /* Features/AICoach/AICoachView.swift in Sources */,
-				SCSTDY012SCSTDY012SCBLDF /* Features/AICoach/AICoachViewModel.swift in Sources */,
 				SCSTDY013SCSTDY013SCBLDF /* Features/Settings/SettingsView.swift in Sources */,
 				SCSTDY014SCSTDY014SCBLDF /* Services/GroqService.swift in Sources */,
 				SCSTDY015SCSTDY015SCBLDF /* Services/LearningStore.swift in Sources */,
@@ -382,6 +454,8 @@
 				SCSTDY024SCSTDY024SCBLDF /* Features/Learn/Flashcards/FlashcardsViewModel.swift in Sources */,
 				SCSTDY025SCSTDY025SCBLDF /* Features/Learn/Flashcards/FlashcardsView.swift in Sources */,
 				SCSTDY026SCSTDY026SCBLDF /* Features/Learn/Flashcards/FlashcardReviewView.swift in Sources */,
+				HLTHSVC001HLTHSVC001BLDF /* HealthKitService.swift in Sources */,
+				SPCHSVC001SPCHSVC001BLDF /* SpeechService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -536,6 +610,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"FinalProject/Preview Content\"";
+				DEVELOPMENT_TEAM = VAJHKCB66A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FinalProject/Info.plist;
@@ -574,6 +649,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"FinalProject/Preview Content\"";
+				DEVELOPMENT_TEAM = VAJHKCB66A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FinalProject/Info.plist;

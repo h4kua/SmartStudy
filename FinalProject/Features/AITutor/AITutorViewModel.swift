@@ -2,10 +2,11 @@ import Foundation
 
 @MainActor
 final class AITutorViewModel: ObservableObject {
-    @Published var messages:   [ChatMessage] = []
-    @Published var inputText:  String        = ""
-    @Published var isLoading:  Bool          = false
-    @Published var errorMessage: String?
+    @Published var messages:      [ChatMessage] = []
+    @Published var inputText:     String        = ""
+    @Published var isLoading:     Bool          = false
+    @Published var errorMessage:  String?
+    @Published var isRecording:   Bool          = false
 
     private let systemPrompt = """
     You are a helpful and encouraging AI academic tutor for university students. \
@@ -19,6 +20,26 @@ final class AITutorViewModel: ObservableObject {
             ChatMessage(role: "assistant",
                         content: "Hi! I'm your AI Academic Tutor. Ask me to explain any concept, help with homework, or suggest a study strategy. What are you working on?")
         ]
+    }
+
+    // MARK: - Voice input
+
+    func toggleRecording() {
+        let speech = SpeechService.shared
+        if speech.isListening {
+            speech.stop()
+            if !speech.transcript.isEmpty {
+                inputText = speech.transcript
+            }
+            isRecording = false
+        } else {
+            isRecording = true
+            Task {
+                let granted = await speech.requestPermissions()
+                guard granted else { isRecording = false; return }
+                speech.start()
+            }
+        }
     }
 
     func send() async {

@@ -25,7 +25,7 @@ struct LearnHubView: View {
                             removal:   .move(edge: .leading)))
                 }
             }
-            .background(StudyTheme.background.ignoresSafeArea())
+            .background(StudyTheme.backgroundGradient.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
             .animation(.easeInOut(duration: 0.2), value: selectedTab)
         }
@@ -69,7 +69,8 @@ struct LearnHubView: View {
                             Group {
                                 if selectedTab == i {
                                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .fill(StudyTheme.accent)
+                                        .fill(StudyTheme.accentGradient)
+                                        .shadow(color: StudyTheme.accentGlow.opacity(0.5), radius: 8, y: 3)
                                         .matchedGeometryEffect(id: "learnTab", in: tabNS)
                                 }
                             }

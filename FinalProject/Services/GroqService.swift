@@ -35,7 +35,7 @@ final class GroqService {
     private init() {}
 
     private let endpoint  = URL(string: "https://api.groq.com/openai/v1/chat/completions")!
-    private let modelID   = "llama3-70b-8192"
+    private let modelID   = "llama-3.3-70b-versatile"
 
     private var apiKey: String {
         ProcessInfo.processInfo.environment["GROQ_API_KEY"] ?? ""
@@ -251,6 +251,8 @@ final class GroqService {
         let (data, response) = try await URLSession.shared.data(for: req)
 
         if let http = response as? HTTPURLResponse, http.statusCode != 200 {
+            let body = String(data: data, encoding: .utf8) ?? "no body"
+            print("❌ Groq HTTP \(http.statusCode): \(body)")
             throw GroqError.httpError(http.statusCode)
         }
 

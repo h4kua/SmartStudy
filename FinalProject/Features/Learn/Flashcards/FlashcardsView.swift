@@ -216,7 +216,7 @@ struct FlashcardsView: View {
                 .padding(.horizontal, StudySpacing.large)
                 .padding(.bottom, StudySpacing.xxLarge)
             }
-            .background(StudyTheme.background.ignoresSafeArea())
+            .background(StudyTheme.backgroundGradient.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

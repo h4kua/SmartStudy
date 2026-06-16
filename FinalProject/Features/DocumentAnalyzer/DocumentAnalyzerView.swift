@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct DocumentAnalyzerView: View {
     @EnvironmentObject var store: LearningStore
@@ -7,7 +8,7 @@ struct DocumentAnalyzerView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                StudyTheme.background.ignoresSafeArea()
+                StudyTheme.backgroundGradient.ignoresSafeArea()
 
                 if vm.result == nil {
                     inputScrollView
@@ -34,6 +35,18 @@ struct DocumentAnalyzerView: View {
         }
         .sheet(isPresented: $vm.showGenerateSheet) {
             generateSheet
+        }
+        .fileImporter(
+            isPresented: $vm.showFilePicker,
+            allowedContentTypes: [.plainText, .pdf],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                if let url = urls.first { vm.loadFile(url: url) }
+            case .failure(let error):
+                vm.errorMessage = "Could not open file: \(error.localizedDescription)"
+            }
         }
     }
 
@@ -75,6 +88,14 @@ struct DocumentAnalyzerView: View {
                         Text("\(vm.wordCount) words")
                             .font(StudyFont.tiny)
                             .foregroundStyle(StudyTheme.tertiaryText)
+                        Button { vm.showFilePicker = true } label: {
+                            Label("Import File", systemImage: "doc.fill")
+                                .font(StudyFont.tiny)
+                                .foregroundStyle(StudyTheme.accent)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(StudyTheme.accentSoft, in: Capsule())
+                        }
                     }
 
                     ZStack(alignment: .topLeading) {
@@ -383,7 +404,7 @@ struct DocumentAnalyzerView: View {
                 .padding(.horizontal, StudySpacing.large)
                 .padding(.bottom, StudySpacing.xxLarge)
             }
-            .background(StudyTheme.background.ignoresSafeArea())
+            .background(StudyTheme.backgroundGradient.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

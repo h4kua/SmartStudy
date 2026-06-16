@@ -6,7 +6,7 @@ struct FlashcardReviewView: View {
 
     var body: some View {
         ZStack {
-            StudyTheme.background.ignoresSafeArea()
+            StudyTheme.backgroundGradient.ignoresSafeArea()
             if vm.sessionComplete {
                 completionView
                     .transition(.asymmetric(

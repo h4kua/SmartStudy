@@ -6,7 +6,7 @@ struct QuizSessionView: View {
 
     var body: some View {
         ZStack {
-            StudyTheme.background.ignoresSafeArea()
+            StudyTheme.backgroundGradient.ignoresSafeArea()
             if vm.showResults {
                 resultsView
                     .transition(.asymmetric(

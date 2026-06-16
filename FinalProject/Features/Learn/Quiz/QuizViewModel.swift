@@ -106,7 +106,7 @@ final class QuizViewModel: ObservableObject {
     // MARK: - Navigation within session
 
     func nextQuestion(store: LearningStore) {
-        guard let session = activeSession else { return }
+        guard activeSession != nil else { return }
         if isLastQuestion {
             finishSession(store: store)
         } else {

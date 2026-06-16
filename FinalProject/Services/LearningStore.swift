@@ -166,6 +166,15 @@ final class LearningStore: ObservableObject {
 
     var totalDocumentsAnalyzed: Int { analyzedDocuments.count }
 
+    // ---------- Study time estimate ----------
+
+    /// Rough estimate: 5 min per completed quiz + 10 min per reviewed deck.
+    var totalStudyMinutes: Int {
+        let quizMinutes = quizSessions.filter(\.isCompleted).count * 5
+        let deckMinutes = flashcardDecks.filter { $0.lastReviewedDate != nil }.count * 10
+        return quizMinutes + deckMinutes
+    }
+
     // ---------- Streak ----------
 
     /// Consecutive days the user had at least one learning activity.

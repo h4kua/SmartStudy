@@ -2,6 +2,8 @@ import SwiftUI
 
 struct AnalyticsView: View {
     @EnvironmentObject var store: LearningStore
+    @ObservedObject private var health = HealthKitService.shared
+    @State private var showSettings = false
 
     var body: some View {
         NavigationStack {
@@ -9,15 +11,19 @@ struct AnalyticsView: View {
                 VStack(spacing: StudySpacing.large) {
                     pageHeader
                     summaryRow
+                    healthCard
                     weeklyActivityChart
                     quizPerformanceCard
+                    subjectPerformanceCard
                     if !store.recentQuizSessions.isEmpty { recentResultsCard }
                 }
                 .padding(.horizontal, StudySpacing.large)
                 .padding(.bottom, StudySpacing.xxLarge)
             }
-            .background(StudyTheme.background.ignoresSafeArea())
+            .background(StudyTheme.backgroundGradient.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
+            .sheet(isPresented: $showSettings) { SettingsView() }
+            .task { await health.requestAuthorization() }
         }
     }
 
@@ -34,6 +40,11 @@ struct AnalyticsView: View {
                     .foregroundStyle(StudyTheme.secondaryText)
             }
             Spacer()
+            Button { showSettings = true } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(StudyTheme.secondaryText)
+            }
         }
         .padding(.top, StudySpacing.large)
     }
@@ -81,6 +92,66 @@ struct AnalyticsView: View {
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .stroke(StudyTheme.surfaceStroke, lineWidth: 1))
         )
+    }
+
+    // MARK: - Apple Health card
+
+    private var healthCard: some View {
+        StudyCard(title: "Apple Health — Today") {
+            if !health.isAuthorized {
+                HStack {
+                    Spacer()
+                    VStack(spacing: StudySpacing.small) {
+                        Image(systemName: "heart.text.square")
+                            .font(.system(size: 28))
+                            .foregroundStyle(StudyTheme.tertiaryText)
+                        Text("Tap to allow Apple Health access.")
+                            .font(StudyFont.body)
+                            .foregroundStyle(StudyTheme.secondaryText)
+                            .multilineTextAlignment(.center)
+                    }
+                    Spacer()
+                }
+                .padding(.vertical, StudySpacing.small)
+            } else {
+                HStack(spacing: StudySpacing.medium) {
+                    healthTile(
+                        icon: "figure.walk",
+                        value: "\(health.todaySteps.formatted())",
+                        label: "Steps Today",
+                        color: StudyTheme.success
+                    )
+                    Rectangle().fill(StudyTheme.surfaceStroke).frame(width: 1, height: 50)
+                    healthTile(
+                        icon: "bed.double.fill",
+                        value: String(format: "%.1fh", health.sleepHours),
+                        label: "Sleep Last Night",
+                        color: StudyTheme.accent
+                    )
+                }
+            }
+        }
+    }
+
+    private func healthTile(icon: String, value: String, label: String, color: Color) -> some View {
+        HStack(spacing: StudySpacing.medium) {
+            ZStack {
+                Circle().fill(color.opacity(0.14)).frame(width: 40, height: 40)
+                Image(systemName: icon)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(color)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 20, weight: .black, design: .rounded))
+                    .foregroundStyle(StudyTheme.primaryText)
+                Text(label)
+                    .font(StudyFont.tiny)
+                    .foregroundStyle(StudyTheme.secondaryText)
+            }
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Weekly chart
@@ -196,6 +267,59 @@ struct AnalyticsView: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Subject performance breakdown
+
+    private var subjectPerformanceCard: some View {
+        let subjectSessions = store.subjects.compactMap { subject -> (Subject, [QuizSession])? in
+            let sessions = store.quizSessions.filter {
+                $0.isCompleted && $0.subject == subject.name
+            }
+            return sessions.isEmpty ? nil : (subject, sessions)
+        }
+
+        return Group {
+            if !subjectSessions.isEmpty {
+                StudyCard(title: "Subject Performance") {
+                    VStack(spacing: StudySpacing.medium) {
+                        ForEach(subjectSessions, id: \.0.id) { subject, sessions in
+                            let avg = sessions.map(\.percentage).reduce(0, +) / Double(sessions.count)
+                            VStack(spacing: 6) {
+                                HStack {
+                                    Circle()
+                                        .fill(subject.color)
+                                        .frame(width: 10, height: 10)
+                                    Text(subject.name)
+                                        .font(StudyFont.subtitle)
+                                        .foregroundStyle(StudyTheme.primaryText)
+                                    Spacer()
+                                    Text(avg.percentString)
+                                        .font(StudyFont.subtitle)
+                                        .foregroundStyle(avg >= 0.7 ? StudyTheme.success : StudyTheme.warning)
+                                    Text("· \(sessions.count) quiz\(sessions.count == 1 ? "" : "zes")")
+                                        .font(StudyFont.tiny)
+                                        .foregroundStyle(StudyTheme.secondaryText)
+                                }
+                                GeometryReader { geo in
+                                    ZStack(alignment: .leading) {
+                                        RoundedRectangle(cornerRadius: 4).fill(StudyTheme.surface2)
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(avg >= 0.7 ? AnyShapeStyle(StudyTheme.success) : AnyShapeStyle(StudyTheme.warning))
+                                            .frame(width: geo.size.width * avg)
+                                            .animation(.spring(response: 0.5), value: avg)
+                                    }
+                                }
+                                .frame(height: 6)
+                            }
+                            if subject.id != subjectSessions.last?.0.id {
+                                Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Recent quiz results

@@ -1,12 +1,15 @@
 import Foundation
+import PDFKit
+import UniformTypeIdentifiers
 
 @MainActor
 final class DocumentAnalyzerViewModel: ObservableObject {
 
     // MARK: - Input
 
-    @Published var documentTitle = ""
-    @Published var inputText    = ""
+    @Published var documentTitle  = ""
+    @Published var inputText      = ""
+    @Published var showFilePicker = false
 
     // MARK: - Analysis state
 
@@ -132,6 +135,34 @@ final class DocumentAnalyzerViewModel: ObservableObject {
         }
 
         isGeneratingFlashcards = false
+    }
+
+    // MARK: - File import
+
+    func loadFile(url: URL) {
+        guard url.startAccessingSecurityScopedResource() else {
+            errorMessage = "Could not access the selected file."
+            return
+        }
+        defer { url.stopAccessingSecurityScopedResource() }
+
+        documentTitle = url.deletingPathExtension().lastPathComponent
+
+        let ext = url.pathExtension.lowercased()
+        if ext == "pdf" {
+            if let pdf = PDFDocument(url: url) {
+                inputText = (0..<pdf.pageCount).compactMap {
+                    pdf.page(at: $0)?.string
+                }.joined(separator: "\n\n")
+            } else {
+                errorMessage = "Could not read PDF file."
+            }
+        } else {
+            inputText = (try? String(contentsOf: url, encoding: .utf8)) ?? ""
+            if inputText.isEmpty {
+                errorMessage = "File appears to be empty."
+            }
+        }
     }
 
     // MARK: - Reset
