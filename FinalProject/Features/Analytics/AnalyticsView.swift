@@ -1,80 +1,74 @@
 import SwiftUI
 
 struct AnalyticsView: View {
-    @EnvironmentObject var store: StudyStore
+    @EnvironmentObject var store: LearningStore
 
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: StudySpacing.large) {
-                    headerBanner
+                    pageHeader
                     summaryRow
-                    weeklyBarChart
-                    subjectBreakdown
+                    weeklyActivityChart
+                    quizPerformanceCard
+                    if !store.recentQuizSessions.isEmpty { recentResultsCard }
                 }
                 .padding(.horizontal, StudySpacing.large)
                 .padding(.bottom, StudySpacing.xxLarge)
             }
             .background(StudyTheme.background.ignoresSafeArea())
-            .navigationBarHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
     // MARK: - Header
 
-    private var headerBanner: some View {
-        GradientStudyCard(gradient: StudyTheme.accentGradient) {
-            VStack(alignment: .leading, spacing: StudySpacing.small) {
-                Label("ANALYTICS", systemImage: "chart.bar.fill")
-                    .font(StudyFont.tiny)
-                    .foregroundStyle(.black.opacity(0.60))
-                    .tracking(1)
-                Text("Study\nProgress")
-                    .font(.system(size: 26, weight: .black, design: .rounded))
-                    .foregroundStyle(.black.opacity(0.90))
+    private var pageHeader: some View {
+        HStack(alignment: .bottom) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Progress")
+                    .font(.system(size: 32, weight: .black, design: .rounded))
+                    .foregroundStyle(StudyTheme.primaryText)
                 Text("Track your learning habits")
                     .font(StudyFont.caption)
-                    .foregroundStyle(.black.opacity(0.60))
+                    .foregroundStyle(StudyTheme.secondaryText)
             }
+            Spacer()
         }
-        .padding(.top, StudySpacing.medium)
+        .padding(.top, StudySpacing.large)
     }
 
-    // MARK: - Summary row
+    // MARK: - Summary tiles
 
     private var summaryRow: some View {
         HStack(spacing: StudySpacing.medium) {
-            summaryTile(
-                icon: "flame.fill",
-                value: "\(store.currentStreak)",
-                label: "Day streak",
-                color: .orange
-            )
-            summaryTile(
-                icon: "clock.fill",
-                value: store.todayWorkMinutes.minutesToHoursString,
-                label: "Today",
-                color: StudyTheme.accent
-            )
-            summaryTile(
-                icon: "books.vertical.fill",
-                value: "\(store.subjects.count)",
-                label: "Subjects",
-                color: StudyTheme.shortBreakColor
-            )
+            summaryTile(icon: "flame.fill",
+                        value: "\(store.currentStreak)",
+                        label: "Day Streak",
+                        color: .orange)
+            summaryTile(icon: "checkmark.circle.fill",
+                        value: "\(store.totalQuizzesTaken)",
+                        label: "Quizzes",
+                        color: StudyTheme.accent)
+            summaryTile(icon: "rectangle.on.rectangle.fill",
+                        value: "\(store.totalFlashcardsReviewed)",
+                        label: "Cards",
+                        color: StudyTheme.longBreakColor)
         }
     }
 
     private func summaryTile(icon: String, value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundStyle(color)
+        VStack(spacing: 8) {
+            ZStack {
+                Circle().fill(color.opacity(0.14)).frame(width: 38, height: 38)
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(color)
+            }
             Text(value)
                 .font(.system(size: 22, weight: .black, design: .rounded))
                 .foregroundStyle(StudyTheme.primaryText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .lineLimit(1).minimumScaleFactor(0.7)
             Text(label)
                 .font(StudyFont.tiny)
                 .foregroundStyle(StudyTheme.secondaryText)
@@ -84,83 +78,56 @@ struct AnalyticsView: View {
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(StudyTheme.surface)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(StudyTheme.surfaceStroke, lineWidth: 1)
-                )
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(StudyTheme.surfaceStroke, lineWidth: 1))
         )
     }
 
-    // MARK: - Weekly bar chart
+    // MARK: - Weekly chart
 
-    private var weeklyBarChart: some View {
+    private var weeklyActivityChart: some View {
         StudyCard(title: "Last 7 Days") {
-            let data = store.last7DaysMinutes
-            let maxMins = max(data.map(\.minutes).max() ?? 1, 1)
+            let data = store.last7DaysActivity
+            let maxCount = max(data.map(\.count).max() ?? 1, 1)
 
             VStack(alignment: .leading, spacing: StudySpacing.medium) {
-                // Goal line label
-                HStack {
-                    Spacer()
-                    Text("Goal: \(Int(store.config.dailyGoalHours))h")
-                        .font(StudyFont.tiny)
-                        .foregroundStyle(StudyTheme.warning)
-                }
-
                 GeometryReader { geo in
-                    let barWidth = (geo.size.width - CGFloat(data.count - 1) * 8) / CGFloat(data.count)
-                    let chartHeight: CGFloat = 140
-                    let goalY = chartHeight * (1 - CGFloat(Int(store.config.dailyGoalHours) * 60) / CGFloat(max(maxMins, Int(store.config.dailyGoalHours) * 60 + 1)))
+                    let barWidth = (geo.size.width - CGFloat(data.count - 1) * 6) / CGFloat(data.count)
+                    let chartH: CGFloat = 120
 
-                    ZStack(alignment: .topLeading) {
-                        // Goal dashed line
-                        Path { path in
-                            path.move(to: CGPoint(x: 0, y: goalY))
-                            path.addLine(to: CGPoint(x: geo.size.width, y: goalY))
-                        }
-                        .stroke(StudyTheme.warning.opacity(0.5),
-                                style: StrokeStyle(lineWidth: 1, dash: [5, 3]))
+                    HStack(alignment: .bottom, spacing: 6) {
+                        ForEach(Array(data.enumerated()), id: \.offset) { idx, item in
+                            let barH = max(4, CGFloat(item.count) / CGFloat(maxCount) * chartH)
+                            let isToday = idx == data.count - 1
 
-                        // Bars
-                        HStack(alignment: .bottom, spacing: 8) {
-                            ForEach(Array(data.enumerated()), id: \.offset) { idx, item in
-                                let barH = CGFloat(item.minutes) / CGFloat(max(maxMins, Int(store.config.dailyGoalHours) * 60 + 1)) * chartHeight
-                                let isToday = idx == data.count - 1
-
-                                VStack(spacing: 4) {
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(isToday ? StudyTheme.accentGradient : LinearGradient(
-                                            colors: [StudyTheme.accent.opacity(0.5)],
-                                            startPoint: .top, endPoint: .bottom
-                                        ))
-                                        .frame(width: barWidth, height: max(4, barH))
-                                }
-                                .frame(width: barWidth, height: chartHeight, alignment: .bottom)
-                            }
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(isToday
+                                      ? AnyShapeStyle(StudyTheme.accentGradient)
+                                      : AnyShapeStyle(StudyTheme.accent.opacity(0.28)))
+                                .frame(width: barWidth, height: barH)
+                                .frame(width: barWidth, height: chartH, alignment: .bottom)
                         }
                     }
-                    .frame(height: chartHeight)
                 }
-                .frame(height: 140)
+                .frame(height: 120)
 
-                // Day labels
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     ForEach(Array(data.enumerated()), id: \.offset) { idx, item in
                         Text(item.label)
                             .font(StudyFont.tiny)
-                            .foregroundStyle(idx == data.count - 1 ? StudyTheme.accent : StudyTheme.secondaryText)
+                            .foregroundStyle(idx == data.count - 1
+                                             ? StudyTheme.accent : StudyTheme.tertiaryText)
                             .frame(maxWidth: .infinity)
                     }
                 }
 
-                // This week total
-                let totalMins = data.map(\.minutes).reduce(0, +)
+                let total = data.map(\.count).reduce(0, +)
                 HStack {
                     Text("This week")
                         .font(StudyFont.caption)
                         .foregroundStyle(StudyTheme.secondaryText)
                     Spacer()
-                    Text(totalMins.minutesToHoursString)
+                    Text("\(total) activit\(total == 1 ? "y" : "ies")")
                         .font(StudyFont.subtitle)
                         .foregroundStyle(StudyTheme.primaryText)
                 }
@@ -169,36 +136,94 @@ struct AnalyticsView: View {
         }
     }
 
-    // MARK: - Subject breakdown
+    // MARK: - Quiz performance
 
-    @ViewBuilder
-    private var subjectBreakdown: some View {
-        let data = store.minutesBySubjectToday
-        if !data.isEmpty {
-            StudyCard(title: "Today by Subject") {
+    private var quizPerformanceCard: some View {
+        StudyCard(title: "Quiz Performance") {
+            if store.totalQuizzesTaken == 0 {
+                HStack {
+                    Spacer()
+                    VStack(spacing: StudySpacing.small) {
+                        Image(systemName: "chart.bar")
+                            .font(.system(size: 32))
+                            .foregroundStyle(StudyTheme.tertiaryText)
+                        Text("Complete a quiz to see your stats.")
+                            .font(StudyFont.body)
+                            .foregroundStyle(StudyTheme.secondaryText)
+                    }
+                    Spacer()
+                }
+                .padding(.vertical, StudySpacing.small)
+            } else {
                 VStack(spacing: StudySpacing.medium) {
-                    ForEach(data, id: \.subject.id) { item in
-                        HStack(spacing: StudySpacing.medium) {
-                            Text(item.subject.emoji).font(.title3)
-                            Text(item.subject.name)
+                    HStack {
+                        statColumn(value: store.averageQuizScore.percentString,
+                                   label: "Average Score",
+                                   color: StudyTheme.accent)
+                        Divider().frame(height: 40).background(StudyTheme.surfaceStroke)
+                        statColumn(value: store.bestQuizScore.percentString,
+                                   label: "Best Score",
+                                   color: StudyTheme.success)
+                        Divider().frame(height: 40).background(StudyTheme.surfaceStroke)
+                        statColumn(value: "\(store.totalQuizzesTaken)",
+                                   label: "Total Taken",
+                                   color: StudyTheme.secondaryText)
+                    }
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 6).fill(StudyTheme.surface2)
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(StudyTheme.accentGradient)
+                                .frame(width: geo.size.width * store.averageQuizScore)
+                                .animation(.spring(response: 0.5), value: store.averageQuizScore)
+                        }
+                    }
+                    .frame(height: 8)
+                }
+            }
+        }
+    }
+
+    private func statColumn(value: String, label: String, color: Color) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.system(size: 22, weight: .black, design: .rounded))
+                .foregroundStyle(color)
+            Text(label)
+                .font(StudyFont.tiny)
+                .foregroundStyle(StudyTheme.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Recent quiz results
+
+    private var recentResultsCard: some View {
+        StudyCard(title: "Recent Results") {
+            VStack(spacing: StudySpacing.small) {
+                ForEach(store.recentQuizSessions.prefix(5)) { session in
+                    HStack(spacing: StudySpacing.medium) {
+                        Circle()
+                            .fill(session.gradeColor)
+                            .frame(width: 8, height: 8)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(session.title)
                                 .font(StudyFont.subtitle)
                                 .foregroundStyle(StudyTheme.primaryText)
-                            Spacer()
-                            Text(item.minutes.minutesToHoursString)
-                                .font(StudyFont.caption)
-                                .foregroundStyle(item.subject.color)
+                                .lineLimit(1)
+                            Text("\(session.score)/\(session.totalQuestions) correct · \(session.difficulty.label)")
+                                .font(StudyFont.tiny)
+                                .foregroundStyle(StudyTheme.secondaryText)
                         }
-
-                        GeometryReader { geo in
-                            ZStack(alignment: .leading) {
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(StudyTheme.surface2)
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(item.subject.color)
-                                    .frame(width: geo.size.width * CGFloat(item.minutes) / CGFloat(max(data.map(\.minutes).max() ?? 1, 1)))
-                            }
-                        }
-                        .frame(height: 6)
+                        Spacer()
+                        Text(session.percentage.percentString)
+                            .font(StudyFont.subtitle)
+                            .foregroundStyle(session.gradeColor)
+                    }
+                    if session.id != store.recentQuizSessions.prefix(5).last?.id {
+                        Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
                     }
                 }
             }

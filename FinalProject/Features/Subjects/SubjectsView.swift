@@ -8,7 +8,7 @@ struct SubjectsView: View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: StudySpacing.medium) {
-                    headerBanner
+                    pageHeader
                     subjectsList
                     addButton
                 }
@@ -16,7 +16,7 @@ struct SubjectsView: View {
                 .padding(.bottom, StudySpacing.xxLarge)
             }
             .background(StudyTheme.background.ignoresSafeArea())
-            .navigationBarHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
         }
         .sheet(isPresented: $vm.showAddSheet) {
             subjectFormSheet
@@ -25,22 +25,19 @@ struct SubjectsView: View {
 
     // MARK: - Header
 
-    private var headerBanner: some View {
-        GradientStudyCard(gradient: StudyTheme.accentGradient) {
-            VStack(alignment: .leading, spacing: StudySpacing.small) {
-                Label("SUBJECTS", systemImage: "books.vertical.fill")
-                    .font(StudyFont.tiny)
-                    .foregroundStyle(.black.opacity(0.60))
-                    .tracking(1)
-                Text("Your Study\nSubjects")
-                    .font(.system(size: 26, weight: .black, design: .rounded))
-                    .foregroundStyle(.black.opacity(0.90))
-                Text("\(store.subjects.count) subjects tracked")
+    private var pageHeader: some View {
+        HStack(alignment: .bottom) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Subjects")
+                    .font(.system(size: 32, weight: .black, design: .rounded))
+                    .foregroundStyle(StudyTheme.primaryText)
+                Text("\(store.subjects.count) subject\(store.subjects.count == 1 ? "" : "s") tracked")
                     .font(StudyFont.caption)
-                    .foregroundStyle(.black.opacity(0.60))
+                    .foregroundStyle(StudyTheme.secondaryText)
             }
+            Spacer()
         }
-        .padding(.top, StudySpacing.medium)
+        .padding(.top, StudySpacing.large)
     }
 
     // MARK: - List
@@ -51,8 +48,8 @@ struct SubjectsView: View {
             StudyCard {
                 VStack(spacing: StudySpacing.medium) {
                     Image(systemName: "books.vertical")
-                        .font(.system(size: 44))
-                        .foregroundStyle(StudyTheme.secondaryText)
+                        .font(.system(size: 40))
+                        .foregroundStyle(StudyTheme.tertiaryText)
                     Text("No subjects yet")
                         .font(StudyFont.cardTitle)
                         .foregroundStyle(StudyTheme.primaryText)
@@ -62,10 +59,13 @@ struct SubjectsView: View {
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, StudySpacing.small)
             }
         } else {
-            ForEach(store.subjects) { subject in
-                subjectRow(subject)
+            VStack(spacing: StudySpacing.small) {
+                ForEach(store.subjects) { subject in
+                    subjectRow(subject)
+                }
             }
         }
     }
@@ -73,36 +73,34 @@ struct SubjectsView: View {
     private func subjectRow(_ subject: Subject) -> some View {
         let mins = store.minutesBySubjectToday.first(where: { $0.subject.id == subject.id })?.minutes ?? 0
         return HStack(spacing: StudySpacing.medium) {
-            // Colour dot + emoji
             ZStack {
-                Circle()
-                    .fill(subject.color.opacity(0.20))
-                    .frame(width: 52, height: 52)
-                Text(subject.emoji).font(.title2)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(subject.color.opacity(0.16))
+                    .frame(width: 48, height: 48)
+                Text(subject.emoji).font(.title3)
             }
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(subject.name)
                     .font(StudyFont.subtitle)
                     .foregroundStyle(StudyTheme.primaryText)
                 Text(mins > 0 ? "Today: \(mins.minutesToHoursString)" : "No sessions today")
-                    .font(StudyFont.caption)
+                    .font(StudyFont.tiny)
                     .foregroundStyle(StudyTheme.secondaryText)
             }
 
             Spacer()
 
-            // Color indicator strip
             RoundedRectangle(cornerRadius: 3)
                 .fill(subject.color)
-                .frame(width: 4, height: 36)
+                .frame(width: 3, height: 32)
 
             Button {
                 vm.startEdit(subject)
             } label: {
                 Image(systemName: "pencil.circle.fill")
                     .font(.system(size: 22))
-                    .foregroundStyle(StudyTheme.secondaryText)
+                    .foregroundStyle(StudyTheme.tertiaryText)
             }
         }
         .padding(StudySpacing.medium)
@@ -127,10 +125,11 @@ struct SubjectsView: View {
 
     private var addButton: some View {
         Button { vm.startAdd() } label: {
-            HStack {
+            HStack(spacing: 8) {
                 Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 17, weight: .semibold))
                 Text("Add Subject")
-                    .fontWeight(.bold)
+                    .font(StudyFont.subtitle)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 52)
@@ -183,20 +182,5 @@ struct SubjectsView: View {
             }
         }
         .presentationDetents([.medium])
-    }
-}
-
-// MARK: - Button style
-
-struct PrimaryStudyButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(StudyFont.subtitle)
-            .foregroundStyle(.white)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(StudyTheme.accentGradient)
-            )
-            .opacity(configuration.isPressed ? 0.85 : 1)
     }
 }

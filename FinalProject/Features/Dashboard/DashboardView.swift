@@ -1,181 +1,233 @@
 import SwiftUI
 
 struct DashboardView: View {
-    @EnvironmentObject var store: StudyStore
+    @EnvironmentObject var store: LearningStore
 
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: StudySpacing.large) {
                     heroBanner
-                    goalProgressCard
-                    if !store.minutesBySubjectToday.isEmpty { todaySubjectsCard }
-                    recentSessionsCard
+                    quickActionsRow
+                    if !store.recentQuizSessions.isEmpty { recentQuizzesCard }
+                    if !store.recentDecks.isEmpty         { recentDecksCard   }
+                    if store.recentQuizSessions.isEmpty && store.recentDecks.isEmpty {
+                        gettingStartedCard
+                    }
                 }
                 .padding(.horizontal, StudySpacing.large)
                 .padding(.bottom, StudySpacing.xxLarge)
             }
             .background(StudyTheme.background.ignoresSafeArea())
-            .navigationBarHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
     // MARK: - Hero
 
     private var heroBanner: some View {
-        GradientStudyCard(gradient: StudyTheme.focusGradient) {
-            VStack(alignment: .leading, spacing: StudySpacing.medium) {
-                HStack {
-                    Label("SMART STUDY", systemImage: "brain.head.profile")
-                        .font(StudyFont.tiny)
-                        .foregroundStyle(.white.opacity(0.70))
-                        .tracking(1)
-                    Spacer()
-                    if store.currentStreak > 0 {
-                        HStack(spacing: 4) {
-                            Image(systemName: "flame.fill").foregroundStyle(.orange)
-                            Text("\(store.currentStreak) day streak")
-                        }
-                        .font(StudyFont.tiny)
-                        .foregroundStyle(.white.opacity(0.85))
-                        .padding(.horizontal, 10).padding(.vertical, 5)
-                        .background(.white.opacity(0.15))
-                        .clipShape(Capsule())
+        VStack(alignment: .leading, spacing: StudySpacing.small) {
+            HStack {
+                Text(greetingText.uppercased())
+                    .font(StudyFont.tiny)
+                    .foregroundStyle(.white.opacity(0.60))
+                    .tracking(1.4)
+                Spacer()
+                if store.currentStreak > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "flame.fill")
+                            .foregroundStyle(.orange)
+                            .font(.caption.bold())
+                        Text("\(store.currentStreak) day streak")
                     }
+                    .font(StudyFont.tiny)
+                    .foregroundStyle(.white.opacity(0.85))
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(.white.opacity(0.12))
+                    .clipShape(Capsule())
                 }
-
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(store.todayWorkMinutes.minutesToHoursString)
-                        .font(.system(size: 48, weight: .black, design: .rounded))
-                        .foregroundStyle(.white)
-                    Text("studied today")
-                        .font(StudyFont.body)
-                        .foregroundStyle(.white.opacity(0.70))
-                        .padding(.bottom, 8)
-                }
-
-                Text(motivationalText)
-                    .font(StudyFont.caption)
-                    .foregroundStyle(.white.opacity(0.75))
             }
+
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("\(store.totalQuizzesTaken)")
+                    .font(.system(size: 46, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                Text("quizzes completed")
+                    .font(StudyFont.body)
+                    .foregroundStyle(.white.opacity(0.60))
+                    .padding(.bottom, 6)
+            }
+
+            Text(motivationalText)
+                .font(StudyFont.caption)
+                .foregroundStyle(.white.opacity(0.65))
         }
+        .padding(StudySpacing.large)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            ZStack(alignment: .topTrailing) {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(StudyTheme.focusGradient)
+                Circle()
+                    .fill(.white.opacity(0.05))
+                    .frame(width: 160, height: 160)
+                    .offset(x: 40, y: -50)
+                Circle()
+                    .fill(.white.opacity(0.04))
+                    .frame(width: 90, height: 90)
+                    .offset(x: 10, y: 30)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        )
+        .shadow(color: Color(red: 0.08, green: 0.14, blue: 0.50).opacity(0.55), radius: 20, x: 0, y: 10)
         .padding(.top, StudySpacing.medium)
     }
 
+    private var greetingText: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 0..<12:  return "Good morning"
+        case 12..<18: return "Good afternoon"
+        default:      return "Good evening"
+        }
+    }
+
     private var motivationalText: String {
-        let progress = store.todayGoalProgress
-        switch progress {
-        case 0:       return "Start your first session today! 🚀"
-        case ..<0.33: return "Great start — keep building momentum."
-        case ..<0.66: return "Halfway there — you're doing great! 💪"
-        case ..<1.0:  return "Almost at your goal — push through!"
-        default:      return "Daily goal reached! Outstanding work 🎉"
+        switch store.totalQuizzesTaken {
+        case 0:    return "Start your first quiz or flashcard session today."
+        case 1...3: return "Good start — keep building your knowledge."
+        case 4...9: return "You're on a roll. Keep the momentum going."
+        default:   return "Excellent consistency. Your hard work is paying off."
         }
     }
 
-    // MARK: - Goal progress
+    // MARK: - Quick actions
 
-    private var goalProgressCard: some View {
-        StudyCard(title: "Today's Goal") {
-            VStack(alignment: .leading, spacing: StudySpacing.medium) {
-                HStack {
-                    Text("\(Int(store.todayGoalProgress * 100))%")
-                        .font(.system(size: 32, weight: .black, design: .rounded))
-                        .foregroundStyle(StudyTheme.accent)
-                        .contentTransition(.numericText())
-                    Spacer()
-                    Text("\(store.todayWorkMinutes.minutesToHoursString) / \(store.config.dailyGoalHours, specifier: "%.0f")h")
-                        .font(StudyFont.caption)
-                        .foregroundStyle(StudyTheme.secondaryText)
-                }
+    private var quickActionsRow: some View {
+        HStack(spacing: StudySpacing.medium) {
+            quickAction(icon: "brain.head.profile", label: "Ask Tutor",   color: StudyTheme.accent)
+            quickAction(icon: "checkmark.circle",   label: "New Quiz",    color: StudyTheme.shortBreakColor)
+            quickAction(icon: "rectangle.on.rectangle", label: "Flashcards", color: StudyTheme.longBreakColor)
+        }
+    }
 
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(StudyTheme.surface2)
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(StudyTheme.accentGradient)
-                            .frame(width: geo.size.width * store.todayGoalProgress)
-                            .animation(.spring(response: 0.5), value: store.todayGoalProgress)
-                    }
-                }
-                .frame(height: 12)
+    private func quickAction(icon: String, label: String, color: Color) -> some View {
+        VStack(spacing: 8) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(color.opacity(0.14))
+                    .frame(width: 52, height: 52)
+                Image(systemName: icon)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(color)
             }
+            Text(label)
+                .font(StudyFont.tiny)
+                .foregroundStyle(StudyTheme.secondaryText)
+                .multilineTextAlignment(.center)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, StudySpacing.medium)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(StudyTheme.surface)
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(StudyTheme.surfaceStroke, lineWidth: 1))
+        )
     }
 
-    // MARK: - Today subjects
+    // MARK: - Recent Quizzes
 
-    private var todaySubjectsCard: some View {
-        StudyCard(title: "Today's Focus") {
+    private var recentQuizzesCard: some View {
+        StudyCard(title: "Recent Quizzes") {
             VStack(spacing: StudySpacing.small) {
-                ForEach(store.minutesBySubjectToday.prefix(4), id: \.subject.id) { item in
+                ForEach(store.recentQuizSessions.prefix(3)) { session in
                     HStack(spacing: StudySpacing.medium) {
-                        Text(item.subject.emoji).font(.title3)
-                        Text(item.subject.name)
-                            .font(StudyFont.subtitle)
-                            .foregroundStyle(StudyTheme.primaryText)
-                        Spacer()
-                        Text(item.minutes.minutesToHoursString)
-                            .font(StudyFont.caption)
-                            .foregroundStyle(item.subject.color)
-                            .padding(.horizontal, 8).padding(.vertical, 4)
-                            .background(item.subject.color.opacity(0.15))
-                            .clipShape(Capsule())
-                    }
-                }
-            }
-        }
-    }
-
-    // MARK: - Recent sessions
-
-    @ViewBuilder
-    private var recentSessionsCard: some View {
-        if store.recentSessions.isEmpty {
-            StudyCard {
-                VStack(spacing: StudySpacing.medium) {
-                    Image(systemName: "timer")
-                        .font(.system(size: 40))
-                        .foregroundStyle(StudyTheme.secondaryText)
-                    Text("No sessions yet")
-                        .font(StudyFont.cardTitle)
-                        .foregroundStyle(StudyTheme.primaryText)
-                    Text("Start a Pomodoro session to track your study time.")
-                        .font(StudyFont.body)
-                        .foregroundStyle(StudyTheme.secondaryText)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-            }
-        } else {
-            StudyCard(title: "Recent Sessions") {
-                VStack(spacing: StudySpacing.small) {
-                    ForEach(store.recentSessions) { session in
-                        HStack(spacing: StudySpacing.medium) {
-                            Image(systemName: "timer")
-                                .font(.body)
-                                .foregroundStyle(StudyTheme.accent)
-                                .frame(width: 24)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(session.subjectName ?? "Free study")
-                                    .font(StudyFont.subtitle)
-                                    .foregroundStyle(StudyTheme.primaryText)
-                                Text(session.startDate, style: .relative)
-                                    .font(StudyFont.tiny)
-                                    .foregroundStyle(StudyTheme.secondaryText)
-                            }
-                            Spacer()
-                            Text(session.durationMinutes.minutesToHoursString)
-                                .font(StudyFont.caption)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(session.gradeColor.opacity(0.14))
+                                .frame(width: 36, height: 36)
+                            Image(systemName: "checkmark.circle")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(session.gradeColor)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(session.title)
+                                .font(StudyFont.subtitle)
+                                .foregroundStyle(StudyTheme.primaryText)
+                                .lineLimit(1)
+                            Text(session.createdDate, style: .relative)
+                                .font(StudyFont.tiny)
                                 .foregroundStyle(StudyTheme.secondaryText)
                         }
-                        if session.id != store.recentSessions.last?.id {
-                            Divider().background(StudyTheme.surfaceStroke)
-                        }
+                        Spacer()
+                        Text(session.percentage.percentString)
+                            .font(StudyFont.subtitle)
+                            .foregroundStyle(session.gradeColor)
+                    }
+                    if session.id != store.recentQuizSessions.prefix(3).last?.id {
+                        Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - Recent Decks
+
+    private var recentDecksCard: some View {
+        StudyCard(title: "Flashcard Decks") {
+            VStack(spacing: StudySpacing.small) {
+                ForEach(store.recentDecks.prefix(3)) { deck in
+                    HStack(spacing: StudySpacing.medium) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(StudyTheme.longBreakColor.opacity(0.14))
+                                .frame(width: 36, height: 36)
+                            Image(systemName: "rectangle.on.rectangle")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(StudyTheme.longBreakColor)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(deck.title)
+                                .font(StudyFont.subtitle)
+                                .foregroundStyle(StudyTheme.primaryText)
+                                .lineLimit(1)
+                            Text("\(deck.totalCards) cards")
+                                .font(StudyFont.tiny)
+                                .foregroundStyle(StudyTheme.secondaryText)
+                        }
+                        Spacer()
+                        Text(deck.overallMastery.percentString)
+                            .font(StudyFont.subtitle)
+                            .foregroundStyle(StudyTheme.longBreakColor)
+                    }
+                    if deck.id != store.recentDecks.prefix(3).last?.id {
+                        Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Getting started
+
+    private var gettingStartedCard: some View {
+        StudyCard {
+            VStack(spacing: StudySpacing.medium) {
+                Image(systemName: "graduationcap")
+                    .font(.system(size: 36))
+                    .foregroundStyle(StudyTheme.tertiaryText)
+                Text("Welcome to AI Academic Mentor")
+                    .font(StudyFont.cardTitle)
+                    .foregroundStyle(StudyTheme.primaryText)
+                Text("Use the tabs below to ask your AI tutor a question, analyze a document, or generate a quiz.")
+                    .font(StudyFont.body)
+                    .foregroundStyle(StudyTheme.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, StudySpacing.small)
         }
     }
 }

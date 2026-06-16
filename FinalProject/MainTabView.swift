@@ -1,32 +1,33 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @EnvironmentObject var store: StudyStore
+    @EnvironmentObject var store: LearningStore
     @State private var selectedTab = 0
 
     var body: some View {
         TabView(selection: $selectedTab) {
+
             DashboardView()
                 .tabItem {
                     Label("Home", systemImage: selectedTab == 0 ? "house.fill" : "house")
                 }
                 .tag(0)
 
-            PomodoroView(store: store)
+            AITutorView()
                 .tabItem {
-                    Label("Focus", systemImage: selectedTab == 1 ? "timer.circle.fill" : "timer")
+                    Label("Tutor", systemImage: selectedTab == 1 ? "brain.head.profile" : "brain")
                 }
                 .tag(1)
 
-            SubjectsView()
+            DocumentAnalyzerView()
                 .tabItem {
-                    Label("Subjects", systemImage: selectedTab == 2 ? "books.vertical.fill" : "books.vertical")
+                    Label("Documents", systemImage: selectedTab == 2 ? "doc.text.fill" : "doc.text")
                 }
                 .tag(2)
 
-            AICoachView()
+            LearnHubView()
                 .tabItem {
-                    Label("Coach", systemImage: selectedTab == 3 ? "brain.head.profile" : "brain")
+                    Label("Learn", systemImage: selectedTab == 3 ? "lightbulb.fill" : "lightbulb")
                 }
                 .tag(3)
 
@@ -36,11 +37,6 @@ struct MainTabView: View {
                 }
                 .tag(4)
 
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gearshape.fill")
-                }
-                .tag(5)
         }
         .tint(StudyTheme.accent)
         .preferredColorScheme(.dark)

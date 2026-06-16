@@ -1,480 +1,802 @@
-# Smart Study Companion — Project Context
+# AI Academic Mentor — Project Context
+
+---
 
 ## Project Identity
 
-- **App name**: Smart Study Companion
-- **Bundle ID**: `njjxzc.adu.cn.FinalProject`
-- **Course**: iOS Application Development
-- **Deadline**: July 1, 2026
-- **Min deployment**: iOS 16.4
-- **Swift version**: 5.0
-- **Platform**: iPhone (SwiftUI, single target)
-- **Developer**: Juan
+| Field | Value |
+|---|---|
+| App Name | AI Academic Mentor |
+| Bundle ID | `njjxzc.adu.cn.FinalProject` |
+| Course | iOS Application Development |
+| Deadline | July 1, 2026 |
+| Minimum Deployment Target | iOS 16.4 |
+| Swift Version | 5.8 |
+| Platform | iPhone only (SwiftUI, Single Target) |
+| Developer | Juan |
+| Architecture | MVVM + Service Layer |
+| Primary AI Provider | Groq API |
+| Language Model | Llama 3 70B (llama3-70b-8192) |
+| Persistence | UserDefaults + JSON encoding |
+| Theme | Dark — "Midnight" |
 
 ---
 
 ## Practical Significance
 
-University students consistently struggle with three interrelated problems:
+The rapid growth of digital education has transformed how university students access learning resources. Although educational content is now more accessible than ever, students still encounter significant difficulties when managing their learning process efficiently.
 
-1. **Unstructured study time** — students sit at a desk for hours but accomplish little due to distraction and no clear work/break boundaries.
-2. **No visibility into learning habits** — students have no data on which subjects they actually spend time on vs. which they neglect.
-3. **Lack of on-demand academic guidance** — getting help with a concept at 11 PM means waiting until the next day or searching scattered resources.
+Many students experience challenges such as understanding difficult concepts, organizing study materials, preparing for examinations, maintaining consistent study habits, and receiving timely academic assistance. Traditional educational tools often solve only one aspect of the learning process. Note-taking applications focus on information storage, quiz applications focus on memorization, and AI chatbots provide explanations without maintaining academic context or tracking learning progress.
 
-**Smart Study Companion** addresses all three. It provides:
-- A Pomodoro timer that enforces focused work sessions and structured breaks, backed by cognitive science (Pomodoro Technique by Francesco Cirillo).
-- Per-subject session tracking that auto-saves study time so students always know exactly where their hours went.
-- An AI coaching chatbot (Groq + Llama-3) that answers concept questions, suggests study strategies, and motivates — available 24/7.
-- A 7-day analytics view and streak counter that make progress visible and motivate consistency.
+As a result, students are forced to switch between multiple applications to complete a single study session. This fragmented experience reduces productivity and increases cognitive load.
 
-**Primary beneficiaries**: University students, especially those preparing for exams or managing multiple subjects simultaneously.
+AI Academic Mentor was designed to address this problem by providing an integrated educational ecosystem that combines artificial intelligence, learning analytics, document processing, knowledge assessment, and academic assistance into a single mobile application.
+
+The application acts as a personalized learning companion that supports students throughout their entire learning journey, from understanding concepts to preparing for examinations.
 
 ---
 
-## Competitor Analysis
+## Problem Statement
 
-| App | Strength | Limitation |
-|-----|----------|-----------|
-| **Forest** | Beautiful timer, gamified focus | No subject tracking, no AI, no analytics |
-| **Notion** | Flexible notes + task tracking | No timer, no AI coach, complex setup |
-| **Anki** | Spaced repetition flashcards | Only for memorization, no session tracking |
-| **MyStudyLife** | Timetable + task management | No Pomodoro, no AI, no real-time coaching |
-| **Focusplan** | Pomodoro + basic stats | No AI, limited subject customisation |
-| **ChatGPT app** | Powerful AI answers | No study session context, no timer, no tracking |
+### Problem 1: Information Overload
 
-**How Smart Study Companion improves on all of them**: It is the only app that combines a Pomodoro timer, per-subject tracking, 7-day analytics, and a context-aware AI coach in a single cohesive dark-themed interface designed specifically for students.
+Students are exposed to large volumes of learning materials every week, including lecture slides, PDF documents, assignments, research papers, and recorded lectures. Processing and organizing this information manually requires substantial effort and time.
+
+### Problem 2: Lack of Personalized Guidance
+
+Most educational platforms provide static content that does not adapt to individual learning needs. Students often struggle to find explanations that match their level of understanding.
+
+### Problem 3: Ineffective Revision Techniques
+
+Many students rely on passive learning methods such as rereading notes. Research consistently shows that active recall techniques such as quizzes and flashcards significantly improve retention.
+
+### Problem 4: Poor Visibility Into Learning Progress
+
+Students rarely know whether they are making sufficient progress toward their academic goals. Without analytics and feedback, motivation often decreases over time.
+
+### Problem 5: Limited Access To Academic Assistance
+
+Outside classroom hours, students may not have immediate access to instructors or tutors. Questions remain unanswered for long periods, slowing the learning process.
 
 ---
 
-## Module Structure
+## Proposed Solution
+
+AI Academic Mentor addresses these challenges through five interconnected modules. Each module focuses on a specific stage of the learning cycle while sharing data across the entire application.
+
+```
+Acquire Knowledge  →  AI Tutor
+Analyze Content    →  Document Analyzer
+Practice & Recall  →  Quiz Generator + Flashcard Generator
+Track Progress     →  Learning Analytics Dashboard
+```
+
+---
+
+## Core Features
+
+### 1. AI Tutor (Tab: Tutor)
+
+The AI Tutor serves as the central intelligence component. Students interact using natural language and receive detailed explanations tailored to their questions.
+
+Capabilities:
+- Concept explanation and homework assistance
+- Programming help and mathematical reasoning
+- Study strategy and exam preparation guidance
+- Maintains conversation history for context-aware replies
+- Injects current subject context into system prompt
+
+Technical implementation:
+- Groq API, model `llama3-70b-8192`
+- `async/await` networking with `URLSession`
+- System prompt injection based on active subject
+- Last 6 messages sent as context window
+- Max 350 tokens per response
+
+---
+
+### 2. Smart Document Analyzer (Tab: Documents)
+
+Students upload text-based materials and receive AI-generated structured insights.
+
+Supported input: plain text typed or pasted by the user (file picker for .txt is a bonus).
+
+Generated output:
+- Executive summary (3–5 sentences)
+- Key concepts (bullet list)
+- Important definitions (term: definition pairs)
+- Topic categorization
+- Suggested follow-up questions
+
+Analyzed documents are saved locally and can be used as source material for quiz and flashcard generation.
+
+---
+
+### 3. AI Quiz Generator (Tab: Learn → Quizzes)
+
+Converts learning material or typed topics into interactive multiple-choice assessments.
+
+Question formats:
+- Multiple Choice (4 options, 1 correct)
+- True or False
+
+Difficulty levels: Beginner / Intermediate / Advanced
+
+Flow:
+1. User enters topic or pastes text
+2. Selects difficulty and number of questions (5, 10, 15)
+3. AI generates questions via Groq
+4. User answers interactively
+5. Score and explanations shown at the end
+6. Quiz session saved to LearningStore
+
+---
+
+### 4. Flashcard Generator (Tab: Learn → Flashcards)
+
+Extracts key concepts from content and converts them into revision flashcards.
+
+Each flashcard:
+- Front: question or term
+- Back: answer or definition
+- Category tag
+- Difficulty rating
+
+Review mechanics:
+- Swipe right = knew it (increases review interval)
+- Swipe left = didn't know (repeats card sooner)
+- Session ends when all cards reviewed once
+
+Decks saved to LearningStore, viewable and reviewable any time.
+
+---
+
+### 5. Learning Analytics Dashboard (Tab: Progress)
+
+Provides actionable insights into learning behavior.
+
+Tracked metrics:
+- Total study sessions and minutes
+- Quiz scores and trends
+- Flashcards reviewed count
+- Active study days and streak
+- Weekly activity bar chart
+- Subject performance breakdown
+
+Visualization components:
+- Weekly bar chart (last 7 days)
+- Progress rings
+- Streak indicator
+- Summary stat tiles
+
+---
+
+## Navigation Architecture
+
+### Tab Structure (5 tabs)
+
+| # | Tab Label | SF Symbol | Root View |
+|---|---|---|---|
+| 1 | Home | `house.fill` | `DashboardView` |
+| 2 | Tutor | `brain.head.profile` | `AITutorView` |
+| 3 | Documents | `doc.text.fill` | `DocumentAnalyzerView` |
+| 4 | Learn | `lightbulb.fill` | `LearnHubView` |
+| 5 | Progress | `chart.bar.fill` | `AnalyticsView` |
+
+Settings is accessible via a gear icon in the Dashboard header or via the Progress tab.
+
+### LearnHubView
+
+`LearnHubView` contains a top segmented picker switching between:
+- `QuizView` — list of past quizzes + "New Quiz" button
+- `FlashcardsView` — list of decks + "New Deck" button
+
+---
+
+## Module Structure (File Tree)
 
 ```
 FinalProject/
-├── FinalProjectApp.swift           App entry — @StateObject StudyStore injected as .environmentObject
-├── MainTabView.swift               6-tab navigation shell
+├── FinalProjectApp.swift
+├── MainTabView.swift
+├── ContentView.swift            (unused, can delete)
 │
-├── Theme/
-│   └── StudyTheme.swift            Design tokens: colours, spacing, typography, StudyCard, GradientStudyCard
+├── Features/
+│   ├── Dashboard/
+│   │   └── DashboardView.swift
+│   │
+│   ├── AITutor/
+│   │   ├── AITutorView.swift
+│   │   └── AITutorViewModel.swift
+│   │
+│   ├── DocumentAnalyzer/
+│   │   ├── DocumentAnalyzerView.swift
+│   │   └── DocumentAnalyzerViewModel.swift
+│   │
+│   ├── Learn/
+│   │   ├── LearnHubView.swift
+│   │   ├── Quiz/
+│   │   │   ├── QuizView.swift
+│   │   │   ├── QuizSessionView.swift
+│   │   │   └── QuizViewModel.swift
+│   │   └── Flashcards/
+│   │       ├── FlashcardsView.swift
+│   │       ├── FlashcardReviewView.swift
+│   │       └── FlashcardsViewModel.swift
+│   │
+│   ├── Analytics/
+│   │   └── AnalyticsView.swift
+│   │
+│   └── Settings/
+│       └── SettingsView.swift
 │
 ├── Models/
-│   └── Models.swift                Subject, StudySession, PomodoroConfig, ChatMessage, Color(hex:)
+│   └── Models.swift
 │
 ├── Services/
-│   └── StudyStore.swift            @MainActor ObservableObject — all persistence (UserDefaults JSON)
-│                                   Computed stats: todayWorkMinutes, currentStreak, last7DaysMinutes,
-│                                   minutesBySubjectToday, recentSessions
+│   ├── LearningStore.swift      (replaces StudyStore)
+│   └── GroqService.swift        (shared AI service)
 │
-└── Features/
-    ├── Dashboard/
-    │   └── DashboardView.swift     Hero banner, daily goal progress bar, today's subjects, recent sessions
-    │
-    ├── Pomodoro/
-    │   ├── PomodoroView.swift      Circular ring timer, mode selector, subject picker sheet, completion banner
-    │   └── PomodoroViewModel.swift @MainActor state machine: work→shortBreak→longBreak, Timer, session save
-    │
-    ├── Subjects/
-    │   ├── SubjectsView.swift      Subject list, swipe-to-delete, add/edit sheet with colour grid
-    │   └── SubjectsViewModel.swift Draft state for add/edit sheet
-    │
-    ├── Analytics/
-    │   └── AnalyticsView.swift     7-day bar chart (pure SwiftUI shapes), streak tile, subject breakdown bars
-    │
-    ├── AICoach/
-    │   ├── AICoachView.swift       Chat interface, bubble layout, typing indicator, input bar
-    │   └── AICoachViewModel.swift  Groq Llama-3 HTTP call, conversation history (last 6 messages), error handling
-    │
-    └── Settings/
-        └── SettingsView.swift      Pomodoro duration steppers, daily goal slider, about section
+└── Theme/
+    └── AppTheme.swift           (replaces StudyTheme)
 ```
 
 ---
 
-## Data Models (`Models/Models.swift`)
+## Data Models
 
 ### Subject
+
 ```swift
 struct Subject: Identifiable, Codable, Hashable {
-    var id: UUID
+    var id: UUID = UUID()
     var name: String
-    var colorHex: String    // "#4A8EFF" format
-    var emoji: String
-    // var color: Color  — computed from colorHex
-    static let presets: [Subject]   // 5 default subjects on first launch
-    static let colorOptions: [String]  // 10 hex color choices
-}
-```
-
-### StudySession
-```swift
-struct StudySession: Identifiable, Codable {
-    var id: UUID
-    var subjectId: UUID?        // nil = free study (no subject selected)
-    var subjectName: String?    // denormalised for display without join
-    var startDate: Date
-    var durationMinutes: Int
-    var sessionType: SessionType  // .work | .shortBreak | .longBreak
-    // var isToday: Bool — Calendar.isDateInToday(startDate)
-}
-```
-
-### PomodoroConfig
-```swift
-struct PomodoroConfig: Codable, Equatable {
-    var workMinutes: Int = 25
-    var shortBreakMinutes: Int = 5
-    var longBreakMinutes: Int = 15
-    var longBreakAfterPomodoros: Int = 4
-    var dailyGoalHours: Double = 4.0
-    var autoStartBreaks: Bool = true
+    var colorHex: String
+    var color: Color { Color(hex: colorHex) ?? AppTheme.accent }
 }
 ```
 
 ### ChatMessage
+
 ```swift
 struct ChatMessage: Identifiable {
-    let id: UUID
-    let role: String    // "user" or "assistant"
+    let id = UUID()
+    let role: String        // "user" | "assistant"
     let content: String
-    let date: Date
+    let date: Date = Date()
 }
 ```
 
----
-
-## StudyStore — Persistence & Stats (`Services/StudyStore.swift`)
-
-`StudyStore` is a `@MainActor final class ObservableObject` injected as `@EnvironmentObject` throughout the app.
-
-### Persistence
-All data stored in `UserDefaults` as JSON (via `JSONEncoder`/`JSONDecoder`):
-- `study.subjects` → `[Subject]`
-- `study.sessions` → `[StudySession]` (capped at 90 days rolling)
-- `study.config` → `PomodoroConfig`
-
-On first launch: 5 preset subjects are seeded automatically.
-
-### Key Computed Properties
-| Property | Description |
-|----------|-------------|
-| `todayWorkMinutes: Int` | Sum of `.work` session minutes for today |
-| `todayGoalProgress: Double` | 0.0–1.0 fraction of daily goal |
-| `currentStreak: Int` | Consecutive days meeting daily goal (checks up to 90 days back) |
-| `last7DaysMinutes: [(label: String, minutes: Int)]` | 7-element array for bar chart, index 0 = oldest |
-| `minutesBySubjectToday: [(subject: Subject, minutes: Int)]` | Today's work sessions grouped by subject, sorted descending |
-| `recentSessions: [StudySession]` | Last 10 work sessions |
-
----
-
-## Pomodoro Timer (`Features/Pomodoro/`)
-
-### TimerMode enum
-```
-.work       → colour: blue (#6194FF),  icon: brain.head.profile
-.shortBreak → colour: green (#33C28F), icon: cup.and.saucer.fill
-.longBreak  → colour: purple (#B370FF),icon: figure.walk
-```
-
-### PomodoroViewModel State Machine
-```
-States: isRunning, mode (TimerMode), timeRemaining, totalTime, completedPomodoros
-
-start()    → isRunning=true, sessionStartDate=Date(), schedules Timer(1 second)
-pause()    → isRunning=false, invalidates timer
-tick()     → timeRemaining -= 1; at 0 → saveCurrentSession() → advance() → applyConfig()
-skipToNext() → pause() → saveCurrentSession(skipped:true) → advance() → applyConfig()
-resetCurrent() → pause() → timeRemaining=totalTime
-
-advance() logic:
-  .work      → completedPomodoros += 1
-               completedPomodoros % longBreakAfterPomodoros == 0 → .longBreak
-               else → .shortBreak
-  .shortBreak/.longBreak → .work
-
-applyConfig():
-  Sets totalTime from config.workMinutes / shortBreakMinutes / longBreakMinutes
-  Sets timeRemaining = totalTime
-  If autoStartBreaks=true AND mode != .work → start()
-```
-
-### Session Auto-Save
-`saveCurrentSession()` only saves if `mode == .work` AND `elapsed >= 1 minute`. Creates a `StudySession` with the selected subject and calls `store.addSession(_:)`.
-
-### Display
-- Timer shown as `"MM:SS"` format with `.monospacedDigit()` and `.contentTransition(.numericText())`
-- Ring: `Circle().trim(from: 0, to: vm.progress)` rotated -90°, animated `.linear(duration: 1)`
-- Ring stroke: 14pt, `.round` lineCap, mode's color
-
----
-
-## AI Coach (`Features/AICoach/`)
-
-### Architecture
-```
-AICoachViewModel (@MainActor ObservableObject)
-  @Published messages: [ChatMessage]
-  @Published inputText: String
-  @Published isLoading: Bool
-
-send(currentSubjectName:) async
-  → append user message
-  → clear inputText
-  → callGroq(userMessage, subjectContext) async throws
-  → append assistant reply
-  → on error: append fallback message
-```
-
-### Groq API Integration
-- **Endpoint**: `https://api.groq.com/openai/v1/chat/completions`
-- **Model**: `llama3-70b-8192`
-- **Auth**: `Bearer $GROQ_API_KEY` from `ProcessInfo.processInfo.environment["GROQ_API_KEY"]`
-- **System prompt**: "You are a helpful, encouraging study coach... Keep responses under 180 words." + optional subject context injection
-- **History**: last 6 messages sent for conversation continuity
-- **Parameters**: `max_tokens: 350`, `temperature: 0.75`
-- **Timeout**: 20 seconds
-- **API key absent**: returns instructional message, does NOT crash
-- **Error handling**: network failure shows fallback message in chat bubble
-
-### Chat UI
-- User bubbles: right-aligned, `StudyTheme.accent` background, black text
-- Assistant bubbles: left-aligned, `StudyTheme.surface2` background, white text, brain icon avatar
-- Typing indicator: 3 grey dots while `isLoading=true`
-- Auto-scroll: `ScrollViewReader` + `.onChange(of: vm.messages.count)`
-- Input bar: multi-line `TextField` (up to 4 lines) + send button disabled when empty or loading
-
----
-
-## Analytics (`Features/Analytics/AnalyticsView.swift`)
-
-### 7-Day Bar Chart
-Built entirely with pure SwiftUI (no Charts framework, no third-party libraries):
-- `GeometryReader` for responsive bar width: `(totalWidth - (count-1) × 8) / count`
-- Bar height: proportional to `minutes / max(maxMins, goalMins + 1) × chartHeight(140)`
-- Goal line: dashed `Path` at calculated Y offset using `StrokeStyle(dash: [5,3])`
-- Today's bar uses `accentGradient`, past days use `accent.opacity(0.5)`
-
-### Summary Tiles
-Three tiles in HStack: current streak (flame icon), today's study time, subject count.
-
-### Subject Breakdown
-Horizontal bars from `store.minutesBySubjectToday`, scaled to the max subject's minutes.
-
----
-
-## Design System (`Theme/StudyTheme.swift`)
-
-### Colours
-| Token | Hex | Use |
-|-------|-----|-----|
-| `background` | `#0D0F1E` | All screen backgrounds |
-| `surface` | `#1A1C33` | Cards |
-| `surface2` | `#262A45` | Elevated elements, input fields |
-| `accent` | `#6194FF` | Primary interactive, focus timer |
-| `focusColor` | `#6194FF` | Work mode ring |
-| `shortBreakColor` | `#33C28F` | Short break ring |
-| `longBreakColor` | `#B370FF` | Long break ring |
-| `success` | `#33C875` | Goal complete |
-| `warning` | `#FFC433` | Chart goal line |
-| `secondaryText` | `#8B8EB3` | Subtitles, hints |
-
-### Gradients
-- `accentGradient`: blue → purple (topLeading → bottomTrailing)
-- `focusGradient`: deep blue → dark blue (used on Dashboard hero banner)
-
-### Reusable Views
-- `StudyCard<Content>`: dark surface card, rounded 20pt corners, shadow, optional title
-- `GradientStudyCard<Content>`: gradient-filled card (used for hero banners)
-- `PrimaryStudyButtonStyle`: gradient-filled button, white text
-
-### Typography (all `.rounded` design)
-| Token | Size/Weight |
-|-------|------------|
-| `hero` | largeTitle, bold |
-| `metric` | 56pt, black |
-| `title` | title2, bold |
-| `cardTitle` | title3, semibold |
-| `subtitle` | subheadline, semibold |
-| `body` | body |
-| `caption` | caption |
-| `tiny` | caption2, medium |
-
----
-
-## Navigation (`MainTabView.swift`)
+### QuizQuestion
 
 ```swift
-TabView(selection: $selectedTab) {
-    DashboardView()     .tabItem { Label("Home",     "house.fill" / "house") }          .tag(0)
-    PomodoroView()      .tabItem { Label("Focus",    "timer.circle.fill" / "timer") }   .tag(1)
-    SubjectsView()      .tabItem { Label("Subjects", "books.vertical.fill" / ...) }     .tag(2)
-    AICoachView()       .tabItem { Label("Coach",    "brain.head.profile" / "brain") }  .tag(3)
-    AnalyticsView()     .tabItem { Label("Progress", "chart.bar.fill" / "chart.bar") }  .tag(4)
-    SettingsView()      .tabItem { Label("Settings", "gearshape.fill") }                .tag(5)
-}
-.tint(StudyTheme.accent)
-.preferredColorScheme(.dark)
-```
+struct QuizQuestion: Identifiable, Codable {
+    var id: UUID = UUID()
+    var question: String
+    var options: [String]       // exactly 4 options
+    var correctIndex: Int       // 0–3
+    var explanation: String
+    var difficulty: Difficulty
 
-`PomodoroView` is initialised with `store` directly (needed for `PomodoroViewModel` init). All other views access store via `@EnvironmentObject`.
-
----
-
-## App Entry Point (`FinalProjectApp.swift`)
-
-```swift
-@main
-struct FinalProjectApp: App {
-    @StateObject private var store = StudyStore()
-
-    var body: some Scene {
-        WindowGroup {
-            MainTabView()
-                .environmentObject(store)
-                .preferredColorScheme(.dark)
-        }
+    enum Difficulty: String, Codable, CaseIterable {
+        case beginner, intermediate, advanced
     }
 }
 ```
 
-`StudyStore` is created once and injected as environment object for the entire view hierarchy. `PomodoroViewModel` is created with `@StateObject` inside `PomodoroView` — NOT shared, because timer state is local to that screen.
+### QuizSession
 
----
+```swift
+struct QuizSession: Identifiable, Codable {
+    var id: UUID = UUID()
+    var title: String
+    var subject: String?
+    var questions: [QuizQuestion]
+    var userAnswers: [Int]      // -1 = unanswered
+    var createdDate: Date
+    var completedDate: Date?
 
-## AI Agent Architecture (for Report)
-
-The app was developed using multiple AI agents with distinct roles:
-
-### Agent 1 — Architecture & Foundation Agent
-- **Role**: Designed the overall app architecture, data models, and design system
-- **Skills**: Swift architecture design, MVVM pattern, data modelling
-- **Output**: `Models.swift`, `StudyTheme.swift`, `StudyStore.swift`, `FinalProjectApp.swift`
-- **Ticket**: "Define domain models, persistence layer, and design tokens before any UI work"
-
-### Agent 2 — Pomodoro Timer Agent
-- **Role**: Implemented the core Pomodoro state machine and timer UI
-- **Skills**: Swift `Timer`, SwiftUI animations, state machine design
-- **Output**: `PomodoroViewModel.swift`, `PomodoroView.swift`
-- **Ticket**: "Build work/break cycle state machine with auto-advance, session auto-save, and circular ring UI"
-- **Collaboration**: Reads `store.config` for durations; calls `store.addSession()` on completion
-
-### Agent 3 — AI Coach Integration Agent
-- **Role**: Integrated Groq API for the study coaching chatbot
-- **Skills**: URLSession async/await, Groq REST API, chat UI patterns
-- **Output**: `AICoachViewModel.swift`, `AICoachView.swift`
-- **Ticket**: "Implement Groq Llama-3 chat with conversation history, subject context injection, and graceful error handling"
-- **Collaboration**: Reads `store.subjects.first?.name` for current subject context
-
-### Agent 4 — Analytics & UI Agent
-- **Role**: Built the analytics charts and all remaining feature screens
-- **Skills**: SwiftUI GeometryReader, pure-code bar charts, dashboard design
-- **Output**: `AnalyticsView.swift`, `DashboardView.swift`, `SubjectsView.swift`, `SettingsView.swift`
-- **Ticket**: "Build 7-day bar chart without external libraries; dashboard hero with goal progress"
-- **Collaboration**: Reads all computed stats from `StudyStore`
-
-### Agent Workflow
-```
-Agent 1 (Foundation) → produces Models + StudyStore
-    ↓
-Agent 2 (Timer) + Agent 3 (AI) → parallel, both depend only on Agent 1 output
-    ↓
-Agent 4 (UI/Analytics) → depends on all of the above
-    ↓
-Integration: MainTabView wires all features together
+    var score: Int { zip(questions, userAnswers).filter { $0.correctIndex == $1 }.count }
+    var totalQuestions: Int { questions.count }
+    var percentage: Double { totalQuestions > 0 ? Double(score) / Double(totalQuestions) : 0 }
+    var isCompleted: Bool { completedDate != nil }
+}
 ```
 
----
+### Flashcard
 
-## Testing
+```swift
+struct Flashcard: Identifiable, Codable {
+    var id: UUID = UUID()
+    var front: String
+    var back: String
+    var category: String
+    var difficulty: QuizQuestion.Difficulty
+    var reviewCount: Int = 0
+    var knewItCount: Int = 0
+    var lastReviewed: Date?
+}
+```
 
-### Test Cases
+### FlashcardDeck
 
-| # | Feature | Test | Expected | Actual |
-|---|---------|------|----------|--------|
-| 1 | Timer tick | Start timer, wait 1s | timeRemaining decreases by 1 | ✅ Pass |
-| 2 | Timer mode advance | Complete work session | mode → .shortBreak | ✅ Pass |
-| 3 | Long break after 4 | Complete 4 work sessions | mode → .longBreak on 4th | ✅ Pass |
-| 4 | Session save | Complete 1-min work session | Session appears in recentSessions | ✅ Pass |
-| 5 | Streak calculation | Study for goal each day 3 days | currentStreak == 3 | ✅ Pass |
-| 6 | Subject add | Add subject with emoji+color | Appears in list with correct colour | ✅ Pass |
-| 7 | Subject delete | Swipe-delete subject | Subject removed from list | ✅ Pass |
-| 8 | Persistence | Kill & relaunch app | Subjects and sessions restored | ✅ Pass |
-| 9 | AI Coach no key | Send message without GROQ_API_KEY | Shows instructional message, no crash | ✅ Pass |
-| 10 | Bar chart | Add sessions across 3 days | Bars appear for correct days | ✅ Pass |
-| 11 | Daily goal progress | Study half of goal | Progress bar shows ~50% | ✅ Pass |
-| 12 | Session type filter | Add shortBreak session | Does NOT appear in todayWorkMinutes | ✅ Pass |
+```swift
+struct FlashcardDeck: Identifiable, Codable {
+    var id: UUID = UUID()
+    var title: String
+    var subject: String?
+    var cards: [Flashcard]
+    var createdDate: Date = Date()
 
-### Bug Fixes During Development
+    var masteryPercent: Double {
+        guard !cards.isEmpty else { return 0 }
+        let mastered = cards.filter { $0.reviewCount > 0 && Double($0.knewItCount) / Double($0.reviewCount) >= 0.7 }.count
+        return Double(mastered) / Double(cards.count)
+    }
+}
+```
 
-| Bug | Root Cause | Fix |
-|-----|-----------|-----|
-| `PomodoroConfig` doesn't conform to Equatable | `onChange(of:)` requires `Equatable` | Added `: Equatable` conformance to `PomodoroConfig` |
-| `cannot convert String to UUID` | Passed `"typing"` String to `scrollTo(_:anchor:)` which uses generic `Hashable` — UUID mismatch | Changed to `scrollTo(lastId, anchor:)` only when `messages.last?.id` exists |
-| `reference to captured var 'self' in concurrently-executing code` | Mutable `self` captured in Timer closure launching `Task` | Added `guard let self` + `[self]` capture list in `Task { @MainActor [self] in }` |
+### AnalyzedDocument
 
-### Build Verification
-```bash
-xcodebuild -project FinalProject.xcodeproj \
-           -scheme FinalProject \
-           -destination 'generic/platform=iOS Simulator' \
-           build
-# Result: ** BUILD SUCCEEDED **
+```swift
+struct AnalyzedDocument: Identifiable, Codable {
+    var id: UUID = UUID()
+    var title: String
+    var originalText: String
+    var summary: String
+    var keyConcepts: [String]
+    var definitions: [String: String]   // term → definition
+    var suggestedQuestions: [String]
+    var analyzedDate: Date = Date()
+    var subject: String?
+}
 ```
 
 ---
 
-## Key Design Decisions
+## LearningStore Architecture
 
-1. **Single target, no SPM modules** — simpler structure than reference app; all files in one target reduces Xcode configuration overhead for a student project.
-2. **UserDefaults + JSON over CoreData/SwiftData** — sufficient for session/subject data volume; no schema migrations needed; simpler to debug and reset during development.
-3. **`@EnvironmentObject` for StudyStore** — avoids prop-drilling through 3+ view levels; StudyStore is the single source of truth for all persistent state.
-4. **`@StateObject` for PomodoroViewModel inside PomodoroView** — timer state is ephemeral and view-local; does not need to survive tab switches or be shared.
-5. **Pure SwiftUI bar chart (no Charts.framework)** — works on iOS 16.4 without importing Charts (which requires iOS 16+). GeometryReader gives full control over bar proportions and goal line overlay.
-6. **Context injection in Groq system prompt** — current subject is appended to the system prompt dynamically so the AI gives relevant subject-specific advice without requiring any extra API calls.
-7. **Conversation history capped at 6 messages** — keeps API request size small while maintaining conversational continuity across 3 exchanges.
-8. **Session deduplication via durationMinutes >= 1** — prevents zero-duration ghost sessions from appearing if the user starts and immediately skips.
-9. **90-day session retention** — enough history for meaningful analytics without unbounded UserDefaults growth.
-10. **`autoStartBreaks`** — respects the Pomodoro Technique's intent; user can disable if they prefer manual control.
+`LearningStore` is the single source of truth. It is an `@MainActor ObservableObject` injected via `.environmentObject()` from `FinalProjectApp`.
+
+```swift
+@MainActor
+final class LearningStore: ObservableObject {
+
+    // Published state
+    @Published var subjects: [Subject]
+    @Published var quizSessions: [QuizSession]
+    @Published var flashcardDecks: [FlashcardDeck]
+    @Published var analyzedDocuments: [AnalyzedDocument]
+
+    // Computed analytics
+    var totalStudyMinutes: Int
+    var currentStreak: Int
+    var totalQuizzesTaken: Int
+    var averageQuizScore: Double
+    var totalFlashcardsReviewed: Int
+    var weeklyActivity: [(label: String, sessions: Int)]
+
+    // CRUD
+    func addQuizSession(_ session: QuizSession)
+    func updateQuizSession(_ session: QuizSession)
+    func addFlashcardDeck(_ deck: FlashcardDeck)
+    func updateFlashcardDeck(_ deck: FlashcardDeck)
+    func deleteFlashcardDeck(id: UUID)
+    func addAnalyzedDocument(_ doc: AnalyzedDocument)
+    func deleteAnalyzedDocument(id: UUID)
+
+    // Persistence: UserDefaults + JSONEncoder/Decoder
+    private func save()
+    private func load()
+}
+```
+
+UserDefaults keys:
+- `"mentor.subjects"`
+- `"mentor.quizSessions"`
+- `"mentor.flashcardDecks"`
+- `"mentor.analyzedDocuments"`
 
 ---
 
-## Local Setup
+## GroqService Architecture
 
-```bash
-cd /Users/JujuOnTheBeat/Documents/FinalProject
-open FinalProject.xcodeproj
-# Scheme: FinalProject
-# Destination: iPhone Simulator or real device
+Shared singleton service for all Groq API calls.
+
+```swift
+@MainActor
+final class GroqService {
+    static let shared = GroqService()
+
+    private var apiKey: String {
+        ProcessInfo.processInfo.environment["GROQ_API_KEY"] ?? ""
+    }
+
+    private let endpoint = "https://api.groq.com/openai/v1/chat/completions"
+    private let model    = "llama3-70b-8192"
+
+    // Generic chat completion
+    func complete(system: String, messages: [[String: String]], maxTokens: Int) async throws -> String
+
+    // Document analysis — returns AnalyzedDocument fields as JSON
+    func analyzeDocument(text: String, title: String) async throws -> AnalyzedDocument
+
+    // Quiz generation — returns [QuizQuestion] as JSON array
+    func generateQuiz(topic: String, difficulty: QuizQuestion.Difficulty, count: Int) async throws -> [QuizQuestion]
+
+    // Flashcard generation — returns [Flashcard] as JSON array
+    func generateFlashcards(text: String, count: Int) async throws -> [Flashcard]
+}
 ```
 
-To enable AI Coach:
-1. Product → Scheme → Edit Scheme → Run → Arguments → Environment Variables
-2. Add: `GROQ_API_KEY` = `<your_groq_api_key>`
-3. Get API key from: https://console.groq.com
+All methods use `async throws`. JSON parsing of AI output handled by asking the model to return strict JSON and using `JSONDecoder`.
 
-Build command:
-```bash
-xcodebuild -project FinalProject.xcodeproj \
-           -scheme FinalProject \
-           -destination 'platform=iOS Simulator,name=iPhone 16' \
-           -configuration Debug build
+---
+
+## Feature Architecture Details
+
+### AITutorView + AITutorViewModel
+
+`AITutorViewModel`:
+- `@Published var messages: [ChatMessage]`
+- `@Published var inputText: String`
+- `@Published var isLoading: Bool`
+- `@Published var selectedSubject: Subject?`
+- `func send() async` — calls `GroqService.shared.complete()`
+- System prompt includes selected subject if set
+- Maintains last 6 messages as context window
+- Initial greeting message on `init()`
+
+`AITutorView` layout:
+```
+NavigationStack
+├── Header (avatar + name + status dot + subject picker)
+├── ScrollView > LazyVStack (message bubbles)
+│   ├── TypingDotsView (when isLoading)
+│   └── Empty state (when no messages)
+└── InputBar (TextField + send button)
 ```
 
 ---
 
-## File Reference
+### DocumentAnalyzerView + DocumentAnalyzerViewModel
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `Theme/StudyTheme.swift` | 119 | Design system |
-| `Models/Models.swift` | 92 | Domain models |
-| `Services/StudyStore.swift` | 138 | Persistence + computed stats |
-| `MainTabView.swift` | 48 | Tab navigation |
-| `Features/Dashboard/DashboardView.swift` | 181 | Home screen |
-| `Features/Pomodoro/PomodoroView.swift` | 277 | Timer UI |
-| `Features/Pomodoro/PomodoroViewModel.swift` | 151 | Timer state machine |
-| `Features/Subjects/SubjectsView.swift` | 202 | Subject management |
-| `Features/Subjects/SubjectsViewModel.swift` | 47 | Subject form state |
-| `Features/Analytics/AnalyticsView.swift` | 207 | Charts + stats |
-| `Features/AICoach/AICoachView.swift` | 176 | Chat UI |
-| `Features/AICoach/AICoachViewModel.swift` | 88 | Groq API + chat logic |
-| `Features/Settings/SettingsView.swift` | 110 | App configuration |
-| **Total** | **1,836** | |
+`DocumentAnalyzerViewModel`:
+- `@Published var inputText: String`
+- `@Published var documentTitle: String`
+- `@Published var isAnalyzing: Bool`
+- `@Published var result: AnalyzedDocument?`
+- `@Published var errorMessage: String?`
+- `func analyze() async` — calls `GroqService.shared.analyzeDocument()`
+- On success: saves to `LearningStore`, sets `result`
+- `func generateQuizFromResult()` — navigates to QuizView prefilled
+- `func generateFlashcardsFromResult()` — navigates to FlashcardsView prefilled
+
+`DocumentAnalyzerView` layout:
+```
+NavigationStack
+├── Page header ("Document Analyzer")
+├── If no result:
+│   ├── TextField (document title)
+│   ├── TextEditor (paste content here)
+│   └── Analyze Button (PrimaryButtonStyle)
+└── If result exists:
+    ├── Summary card
+    ├── Key concepts list
+    ├── Definitions list
+    ├── Suggested questions
+    └── Action buttons: "Generate Quiz" | "Generate Flashcards"
+```
+
+---
+
+### QuizView + QuizSessionView + QuizViewModel
+
+`QuizViewModel`:
+- `@Published var topic: String`
+- `@Published var difficulty: QuizQuestion.Difficulty`
+- `@Published var questionCount: Int` (5 / 10 / 15)
+- `@Published var isGenerating: Bool`
+- `@Published var activeSession: QuizSession?`
+- `@Published var currentIndex: Int`
+- `@Published var selectedAnswer: Int?`
+- `@Published var showExplanation: Bool`
+- `func generateQuiz() async`
+- `func selectAnswer(_ index: Int)`
+- `func nextQuestion()`
+- `func finishSession()` — saves to LearningStore
+
+`QuizView` layout:
+```
+NavigationStack
+├── Page header + past sessions list
+└── Sheet: Quiz generator form
+    ├── Topic TextField
+    ├── Difficulty picker (Beginner / Intermediate / Advanced)
+    ├── Question count picker (5 / 10 / 15)
+    └── Generate button
+```
+
+`QuizSessionView` layout (presented fullscreen):
+```
+VStack
+├── Progress bar (currentIndex / total)
+├── Question card
+├── 4 answer option buttons
+├── Explanation card (shown after answer)
+└── Next / Finish button
+```
+
+---
+
+### FlashcardsView + FlashcardReviewView + FlashcardsViewModel
+
+`FlashcardsViewModel`:
+- `@Published var topic: String`
+- `@Published var cardCount: Int` (10 / 20 / 30)
+- `@Published var isGenerating: Bool`
+- `@Published var activeDeck: FlashcardDeck?`
+- `@Published var reviewIndex: Int`
+- `@Published var isFlipped: Bool`
+- `func generateDeck() async`
+- `func markKnew()` — updates card stats, advance
+- `func markDidNotKnow()` — updates card stats, advance
+- `func flipCard()`
+
+`FlashcardsView` layout:
+```
+NavigationStack
+├── Page header + deck list
+└── Sheet: Deck generator form
+    ├── Topic TextField
+    ├── Card count picker (10 / 20 / 30)
+    └── Generate button
+```
+
+`FlashcardReviewView` layout (fullscreen):
+```
+VStack
+├── Progress indicator (x of y)
+├── Card view (flip animation on tap)
+│   ├── Front face: question/term
+│   └── Back face: answer/definition
+└── Knew it / Didn't know buttons
+```
+
+Card flip uses `.rotation3DEffect` with a `@State var isFlipped` toggle.
+
+---
+
+### AnalyticsView
+
+Data sourced entirely from `LearningStore`. No separate ViewModel needed.
+
+Layout:
+```
+NavigationStack
+├── Page header ("Progress")
+├── Summary tiles row (3 tiles)
+│   ├── Streak (flame icon)
+│   ├── Quizzes taken
+│   └── Flashcards reviewed
+├── Weekly activity bar chart
+├── Average quiz score card
+└── Recent quiz results list
+```
+
+---
+
+### DashboardView
+
+Layout:
+```
+NavigationStack
+├── Hero card (greeting + today's quick stats)
+├── Quick actions row
+│   ├── "Ask Tutor" button
+│   ├── "Analyze Document" button
+│   └── "Start Quiz" button
+├── Recent quiz sessions card
+└── Recent flashcard decks card
+```
+
+Quick actions use `NavigationLink` or `.sheet` to open respective feature views.
+
+---
+
+## Theme System (AppTheme)
+
+File: `Theme/AppTheme.swift`
+
+### Colors
+
+```swift
+enum AppTheme {
+    static let background  = Color(red: 0.040, green: 0.040, blue: 0.094)
+    static let surface     = Color(red: 0.086, green: 0.086, blue: 0.149)
+    static let surface2    = Color(red: 0.120, green: 0.120, blue: 0.196)
+    static let surface3    = Color(red: 0.155, green: 0.155, blue: 0.243)
+
+    static let accent      = Color(red: 0.40, green: 0.60, blue: 1.00)   // #6699FF
+    static let accentSoft  = accent.opacity(0.12)
+
+    static let success     = Color(red: 0.22, green: 0.82, blue: 0.48)   // #38D17A
+    static let warning     = Color(red: 1.00, green: 0.78, blue: 0.22)   // #FFC838
+    static let danger      = Color(red: 1.00, green: 0.38, blue: 0.38)   // #FF6161
+
+    static let primaryText   = Color.white
+    static let secondaryText = Color(red: 0.54, green: 0.54, blue: 0.66)
+    static let tertiaryText  = Color(red: 0.33, green: 0.33, blue: 0.44)
+
+    static let surfaceStroke = Color.white.opacity(0.07)
+    static let shadow        = Color.black.opacity(0.40)
+
+    static let accentGradient = LinearGradient(
+        colors: [Color(red: 0.40, green: 0.60, blue: 1.00),
+                 Color(red: 0.64, green: 0.38, blue: 1.00)],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+    )
+    static let heroGradient = LinearGradient(
+        colors: [Color(red: 0.18, green: 0.32, blue: 0.76),
+                 Color(red: 0.08, green: 0.14, blue: 0.50)],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+    )
+}
+```
+
+### Spacing
+
+```swift
+enum AppSpacing {
+    static let xSmall:  CGFloat = 4
+    static let small:   CGFloat = 8
+    static let medium:  CGFloat = 16
+    static let large:   CGFloat = 24
+    static let xLarge:  CGFloat = 32
+    static let xxLarge: CGFloat = 52
+}
+```
+
+### Typography
+
+```swift
+enum AppFont {
+    static let hero      = Font.system(.largeTitle,   design: .rounded).weight(.black)
+    static let title     = Font.system(.title2,       design: .rounded).weight(.bold)
+    static let cardTitle = Font.system(.title3,       design: .rounded).weight(.semibold)
+    static let subtitle  = Font.system(.subheadline,  design: .rounded).weight(.semibold)
+    static let body      = Font.system(.body,         design: .rounded)
+    static let caption   = Font.system(.caption,      design: .rounded)
+    static let tiny      = Font.system(.caption2,     design: .rounded).weight(.medium)
+}
+```
+
+### Reusable Components
+
+- `AppCard<Content>` — dark surface card with border and shadow
+- `PrimaryButtonStyle` — gradient fill, press scale animation
+- `GhostButtonStyle` — outline border, accent tint
+- `HeroBanner<Content>` — hero gradient card with decorative circles
+
+---
+
+## Environment Setup
+
+### GROQ_API_KEY
+
+1. Open Xcode → Product menu → Scheme → Edit Scheme
+2. Select **Run** → **Arguments** tab
+3. Under **Environment Variables**, add:
+   - Name: `GROQ_API_KEY`
+   - Value: your Groq API key from `console.groq.com`
+
+The app reads: `ProcessInfo.processInfo.environment["GROQ_API_KEY"]`
+
+### Build Requirements
+
+- Xcode 14.3.1
+- Swift 5.8
+- iOS 16.4 simulator or physical iPhone
+- SDKROOT = iphoneos (no Mac Catalyst)
+- No external Swift packages required (pure SwiftUI + URLSession)
+
+### Build Steps
+
+1. Open `/Users/JujuOnTheBeat/Documents/FinalProject/FinalProject.xcodeproj`
+2. Select target **FinalProject**, destination **iPhone 14 (or later) Simulator**
+3. Add `GROQ_API_KEY` to scheme environment variables
+4. Press **⌘B** to build, **⌘R** to run
+
+---
+
+## Competitive Advantage
+
+Unlike traditional educational applications that focus on a single functionality, AI Academic Mentor combines:
+
+1. Artificial Intelligence (Groq / Llama 3)
+2. Learning Analytics
+3. Document Intelligence
+4. Knowledge Assessment (Quiz + Flashcards)
+5. Personalized AI Assistance
+
+within a single ecosystem. This integration creates a unified learning experience that reduces application switching and improves productivity.
+
+---
+
+## Future Expansion
+
+- Retrieval-Augmented Generation (RAG) for document-grounded answers
+- Voice-Based AI Tutor (Speech-to-Text input)
+- OCR-Based Note Scanning using Vision framework
+- AI Assignment Feedback
+- Personalized Learning Paths
+- Multi-Agent Educational System (CrewAI backend)
+- Apple Pencil Integration
+- Vision Pro Support
+
+---
+
+## What Exists vs What Needs Building
+
+### Exists (keep and rename/refactor)
+
+| Current File | Action |
+|---|---|
+| `Theme/StudyTheme.swift` | Rename tokens to `AppTheme` / `AppFont` / `AppSpacing` |
+| `Features/AICoach/AICoachView.swift` | Rename → `AITutorView`, update references |
+| `Features/AICoach/AICoachViewModel.swift` | Rename → `AITutorViewModel`, use `GroqService` |
+| `Features/Analytics/AnalyticsView.swift` | Keep, update to use `LearningStore` |
+| `Features/Settings/SettingsView.swift` | Keep, minor updates |
+| `Services/StudyStore.swift` | Replace with `LearningStore.swift` |
+| `Models/Models.swift` | Extend with new models (Quiz, Flashcard, Document) |
+| `MainTabView.swift` | Update to 5 new tabs |
+| `FinalProjectApp.swift` | Update to inject `LearningStore` |
+
+### Needs Building (new files)
+
+| File | Priority |
+|---|---|
+| `Services/GroqService.swift` | HIGH — shared AI layer |
+| `Services/LearningStore.swift` | HIGH — replaces StudyStore |
+| `Features/Dashboard/DashboardView.swift` | HIGH — new layout |
+| `Features/AITutor/AITutorView.swift` | HIGH — rename + enhance |
+| `Features/DocumentAnalyzer/DocumentAnalyzerView.swift` | HIGH |
+| `Features/DocumentAnalyzer/DocumentAnalyzerViewModel.swift` | HIGH |
+| `Features/Learn/LearnHubView.swift` | HIGH |
+| `Features/Learn/Quiz/QuizView.swift` | HIGH |
+| `Features/Learn/Quiz/QuizSessionView.swift` | HIGH |
+| `Features/Learn/Quiz/QuizViewModel.swift` | HIGH |
+| `Features/Learn/Flashcards/FlashcardsView.swift` | HIGH |
+| `Features/Learn/Flashcards/FlashcardReviewView.swift` | HIGH |
+| `Features/Learn/Flashcards/FlashcardsViewModel.swift` | HIGH |
+
+### Remove (no longer needed)
+
+| File | Reason |
+|---|---|
+| `Features/Pomodoro/PomodoroView.swift` | Replaced by Quiz/Learn flow |
+| `Features/Pomodoro/PomodoroViewModel.swift` | Replaced |
+| `Features/Subjects/SubjectsView.swift` | Subjects now managed inside each feature |
+| `Features/Subjects/SubjectsViewModel.swift` | Removed |
+| `Features/Auth/AuthView.swift` | Firebase removed, not needed |
+| `Features/Auth/AuthViewModel.swift` | Firebase removed, not needed |
+| `ContentView.swift` | Unused |
+
+---
+
+## Build Order (Implementation Sequence)
+
+1. `Models/Models.swift` — add `QuizQuestion`, `QuizSession`, `Flashcard`, `FlashcardDeck`, `AnalyzedDocument`
+2. `Services/GroqService.swift` — shared AI networking
+3. `Services/LearningStore.swift` — state management
+4. `Theme/AppTheme.swift` — rename tokens
+5. `MainTabView.swift` — 5 new tabs
+6. `FinalProjectApp.swift` — inject `LearningStore`
+7. `Features/Dashboard/DashboardView.swift`
+8. `Features/AITutor/` — rename from AICoach
+9. `Features/DocumentAnalyzer/` — new
+10. `Features/Learn/Quiz/` — new
+11. `Features/Learn/Flashcards/` — new
+12. `Features/Analytics/AnalyticsView.swift` — update
+13. `Features/Settings/SettingsView.swift` — minor update
+14. Delete unused files from Xcode project
