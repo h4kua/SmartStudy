@@ -128,8 +128,13 @@ final class FlashcardsViewModel: ObservableObject {
             deck.cards[idx] = card
         }
 
+        // BUG FIX: always update lastReviewedDate on every card advance,
+        // not just the last card. Previously, quitting a partial review meant
+        // the deck's lastReviewedDate was never set — so partial reviews
+        // didn't count toward the streak calculation in LearningStore.hasActivity(on:).
+        deck.lastReviewedDate = Date()
+
         if isLastCard {
-            deck.lastReviewedDate = Date()
             activeDeck = deck
             store.updateFlashcardDeck(deck)
             sessionComplete = true

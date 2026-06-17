@@ -120,7 +120,9 @@ async def get_weekly_plan(req: WeeklyPlanRequest) -> PlanResponse:
         )
         return PlanResponse(success=True, plan=result)
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        # BUG FIX: don't expose internal stack traces to client
+        print(f"[weekly-plan] Error: {exc}")
+        raise HTTPException(status_code=500, detail="Failed to generate study plan. Check server logs.")
 
 
 @app.post("/study/performance-review", response_model=ReviewResponse)
@@ -143,4 +145,6 @@ async def get_performance_review(req: PerformanceReviewRequest) -> ReviewRespons
         )
         return ReviewResponse(success=True, review=result)
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        # BUG FIX: don't expose internal stack traces to client
+        print(f"[performance-review] Error: {exc}")
+        raise HTTPException(status_code=500, detail="Failed to generate performance review. Check server logs.")

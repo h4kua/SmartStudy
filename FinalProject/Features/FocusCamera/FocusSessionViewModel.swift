@@ -14,7 +14,6 @@ struct FocusSessionStats {
     var totalSeconds:   Int    = 0
     var focusedSeconds: Int    = 0
     var avgScore:       Double = 0
-    var scoreHistory:   [Double] = []
 
     var focusedPercent: Double {
         guard totalSeconds > 0 else { return 0 }
@@ -101,6 +100,7 @@ final class FocusSessionViewModel: ObservableObject {
         isActive       = true
         showAwayWarning = false
         voiceCoach.isEnabled = voiceEnabled
+        voiceCoach.reset()   // clear stopped flag + cooldown timestamps from previous session
 
         cameraService.start()
 
@@ -172,9 +172,14 @@ final class FocusSessionViewModel: ObservableObject {
 
         focusState = newState
 
-        // Update rolling average
-        stats.scoreHistory.append(smoothedScore)
-        if stats.scoreHistory.count > 1800 { stats.scoreHistory.removeFirst(300) }
-        stats.avgScore = stats.scoreHistory.reduce(0, +) / Double(stats.scoreHistory.count)
+        // BUG FIX: use running average instead of growing array.
+        // Previous approach used removeFirst(300) on a 1800-element array — O(n) shift each time.
+        // Running average is O(1) and uses constant memory.
+        let n = Double(stats.totalSeconds)
+        if n <= 1 {
+            stats.avgScore = smoothedScore
+        } else {
+            stats.avgScore = stats.avgScore + (smoothedScore - stats.avgScore) / n
+        }
     }
 }

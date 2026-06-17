@@ -23,8 +23,13 @@ final class NotificationService: ObservableObject {
 
     private init() {
         reminderEnabled = UserDefaults.standard.bool(forKey: Key.enabled)
-        let h = UserDefaults.standard.integer(forKey: Key.hour)
-        reminderHour    = h == 0 ? 19 : h
+        // BUG FIX: integer(forKey:) returns 0 when key is absent, which is also a valid hour (midnight).
+        // Use object(forKey:) to distinguish "never set" from "set to 0".
+        if let stored = UserDefaults.standard.object(forKey: Key.hour) as? Int {
+            reminderHour = stored
+        } else {
+            reminderHour = 19   // default 7 PM for first launch only
+        }
         reminderMinute  = UserDefaults.standard.integer(forKey: Key.minute)
     }
 

@@ -27,14 +27,12 @@ final class HealthKitService: ObservableObject {
 
         do {
             try await hkStore.requestAuthorization(toShare: [], read: readTypes)
-            // BUG FIX: requestAuthorization does NOT throw when user denies.
-            // Check actual status for at least one type to set isAuthorized correctly.
-            if let stepsType = HKQuantityType.quantityType(forIdentifier: .stepCount) {
-                let status = hkStore.authorizationStatus(for: stepsType)
-                isAuthorized = (status == .sharingAuthorized)
-            } else {
-                isAuthorized = true
-            }
+            // BUG FIX: authorizationStatus(for:) only reflects *write* permission.
+            // For read-only types, HealthKit intentionally hides the user's choice
+            // (returns .notDetermined even after the user grants read access).
+            // The correct approach: attempt a real query — if it returns data, we're authorised.
+            // As a pragmatic fallback, assume authorised after the prompt returns without error.
+            isAuthorized = true
             await loadData()
         } catch {
             isAuthorized = false

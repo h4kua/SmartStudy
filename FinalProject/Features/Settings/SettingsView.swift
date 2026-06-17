@@ -7,7 +7,13 @@ struct SettingsView: View {
     @State private var showClearConfirm    = false
     @State private var showSignOutConfirm  = false
     @State private var showSubjectManager  = false
-    @State private var reminderTime        = Date()
+    // BUG FIX: initialise from stored values — not Date() — so DatePicker shows the saved time
+    @State private var reminderTime: Date = {
+        var comps = DateComponents()
+        comps.hour   = NotificationService.shared.reminderHour
+        comps.minute = NotificationService.shared.reminderMinute
+        return Calendar.current.date(from: comps) ?? Date()
+    }()
 
     var body: some View {
         NavigationStack {
@@ -169,9 +175,6 @@ struct SettingsView: View {
             }
         }
         .task { await notif.checkStatus() }
-        .sheet(isPresented: $showSubjectManager) {
-            SubjectManagementView().environmentObject(store)
-        }
     }
 
     // MARK: - Stats snapshot

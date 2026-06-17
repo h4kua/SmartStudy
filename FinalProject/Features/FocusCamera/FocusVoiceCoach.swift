@@ -10,6 +10,10 @@ final class FocusVoiceCoach {
 
     var isEnabled: Bool = true
 
+    /// BUG FIX: track stopped state so queued closures on the serial queue
+    /// don't call speak() after stop() has been invoked.
+    private var isStopped: Bool = false
+
     var isSpeaking: Bool { synthesizer.isSpeaking }
 
     // MARK: - Private
@@ -75,19 +79,29 @@ final class FocusVoiceCoach {
     }
 
     func stop() {
+        isStopped = true
         synthesizer.stopSpeaking(at: .immediate)
+    }
+
+    /// Reset stopped flag — call when starting a new session.
+    func reset() {
+        isStopped = false
+        lastSpokenAt.removeAll()
     }
 
     // MARK: - Private helpers
 
     private func speakIfCooled(key: String, cooldown: TimeInterval, phrase: @escaping () -> String) {
         queue.async { [weak self] in
-            guard let self else { return }
+            guard let self, !self.isStopped else { return }
             let now = CACurrentMediaTime()
             if let last = self.lastSpokenAt[key], now - last < cooldown { return }
             self.lastSpokenAt[key] = now
             let text = phrase()
-            DispatchQueue.main.async { self.speak(text) }
+            DispatchQueue.main.async { [weak self] in
+                guard let self, !self.isStopped else { return }
+                self.speak(text)
+            }
         }
     }
 

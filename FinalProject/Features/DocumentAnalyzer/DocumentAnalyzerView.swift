@@ -33,11 +33,17 @@ struct DocumentAnalyzerView: View {
             }
             .toolbar(.hidden, for: .navigationBar)
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: vm.bannerMessage)
+            // BUG FIX: previous Task was never cancelled — if a new banner appeared
+            // while sleeping, the old Task would prematurely clear the new banner.
             .onChange(of: vm.bannerMessage) { msg in
                 guard msg != nil else { return }
+                let captured = msg
                 Task {
                     try? await Task.sleep(nanoseconds: 3_000_000_000)
-                    vm.bannerMessage = nil
+                    // Only clear if the banner hasn't been replaced by a newer one
+                    if vm.bannerMessage == captured {
+                        vm.bannerMessage = nil
+                    }
                 }
             }
         }
@@ -269,20 +275,23 @@ struct DocumentAnalyzerView: View {
 
     // --- Definitions ---
 
+    // BUG FIX: definitions were sorted twice per render (once for ForEach, once for separator check).
+    // Dictionary ordering is non-deterministic; sorting once avoids inconsistency and wasted work.
     private func definitionsCard(_ doc: AnalyzedDocument) -> some View {
-        StudyCard(title: "Definitions") {
+        let sortedDefs = doc.definitions.sorted(by: { $0.key < $1.key })
+        return StudyCard(title: "Definitions") {
             VStack(alignment: .leading, spacing: StudySpacing.medium) {
-                ForEach(doc.definitions.sorted(by: { $0.key < $1.key }), id: \.key) { term, definition in
+                ForEach(Array(sortedDefs.enumerated()), id: \.offset) { idx, entry in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(term)
+                        Text(entry.key)
                             .font(StudyFont.subtitle)
                             .foregroundStyle(StudyTheme.accent)
-                        Text(definition)
+                        Text(entry.value)
                             .font(StudyFont.body)
                             .foregroundStyle(StudyTheme.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    if term != doc.definitions.sorted(by: { $0.key < $1.key }).last?.key {
+                    if idx < sortedDefs.count - 1 {
                         Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
                     }
                 }

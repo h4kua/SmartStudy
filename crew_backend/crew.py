@@ -221,7 +221,8 @@ class PerformanceReviewCrew:
                 f"  • {q['subject']}: {q['score']}% ({q['difficulty']})"
                 for q in quiz_history
             )
-            avg = sum(q["score"] for q in quiz_history) // len(quiz_history)
+            # BUG FIX: was integer division (//) — silently lost decimal precision (89.5 → 89)
+            avg = round(sum(q["score"] for q in quiz_history) / len(quiz_history), 1)
             summary_line = f"  Average score: {avg}%   Quizzes taken: {len(quiz_history)}"
         else:
             rows = "  (no quiz history)"
