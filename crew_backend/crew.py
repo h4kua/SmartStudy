@@ -7,16 +7,28 @@ Two crews:
 """
 
 import os
+import logging
 from crewai import Agent, Task, Crew, LLM
+
+logger = logging.getLogger(__name__)
+
+# Cache a single LLM instance — recreating it per request is wasteful
+_cached_llm: LLM | None = None
 
 
 def _llm() -> LLM:
-    """Create a Groq-powered LLM instance."""
-    return LLM(
-        model="groq/llama-3.3-70b-versatile",
-        api_key=os.getenv("GROQ_API_KEY"),
-        temperature=0.7,
-    )
+    """Return a cached Groq-powered LLM instance."""
+    global _cached_llm
+    if _cached_llm is None:
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            raise ValueError("GROQ_API_KEY not configured")
+        _cached_llm = LLM(
+            model="groq/llama-3.3-70b-versatile",
+            api_key=api_key,
+            temperature=0.7,
+        )
+    return _cached_llm
 
 
 # ─────────────────────────────────────────────────────────────

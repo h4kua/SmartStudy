@@ -73,6 +73,11 @@ struct FocusSessionView: View {
             if vm.showAwayWarning {
                 awayWarningOverlay
             }
+
+            // ── 5. Session summary overlay ───────────────────────
+            if vm.showSummary {
+                sessionSummaryOverlay
+            }
         }
         .preferredColorScheme(.dark)
         .onDisappear { vm.stop() }
@@ -449,6 +454,49 @@ struct FocusSessionView: View {
                     vm.showAwayWarning = false
                 } label: {
                     Text("I'm back!")
+                        .font(StudyFont.subtitle)
+                        .foregroundStyle(.white)
+                        .frame(width: 180, height: 48)
+                        .background(StudyTheme.accentGradient)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+            }
+            .padding(StudySpacing.xxLarge)
+        }
+        .transition(.opacity)
+    }
+
+    // MARK: - Session Summary Overlay
+
+    private var sessionSummaryOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.75).ignoresSafeArea()
+
+            VStack(spacing: StudySpacing.large) {
+                ZStack {
+                    Circle()
+                        .fill(StudyTheme.success.opacity(0.15))
+                        .frame(width: 72, height: 72)
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(StudyTheme.success)
+                }
+
+                Text("Session Complete")
+                    .font(.system(size: 24, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+
+                Text(vm.sessionSummary)
+                    .font(StudyFont.body)
+                    .foregroundStyle(.white.opacity(0.80))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Button {
+                    vm.dismissSummary()
+                    dismiss()
+                } label: {
+                    Text("Done")
                         .font(StudyFont.subtitle)
                         .foregroundStyle(.white)
                         .frame(width: 180, height: 48)

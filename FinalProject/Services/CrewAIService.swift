@@ -178,6 +178,11 @@ final class CrewAIService: ObservableObject {
             throw CrewAIError.invalidURL
         }
         guard http.statusCode == 200 else {
+            // Try to extract detail from FastAPI error response
+            if let detail = try? JSONDecoder().decode([String: String].self, from: data),
+               let msg = detail["detail"] {
+                throw CrewAIError.decodingError("HTTP \(http.statusCode): \(msg)")
+            }
             throw CrewAIError.httpError(http.statusCode)
         }
 

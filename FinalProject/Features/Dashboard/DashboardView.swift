@@ -96,6 +96,8 @@ struct DashboardView: View {
                     .foregroundStyle(.white.opacity(0.60))
                     .padding(.bottom, 6)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(store.totalQuizzesTaken) quizzes completed")
 
             if store.totalStudyMinutes > 0 {
                 HStack(spacing: 6) {

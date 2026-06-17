@@ -90,6 +90,11 @@ struct AITutorView: View {
                                 removal: .opacity
                             ))
                     }
+                    // Retry button when last request failed
+                    if vm.canRetry {
+                        retryButton
+                            .transition(.scale.combined(with: .opacity))
+                    }
                     if vm.isLoading {
                         TypingDotsView()
                             .id("typing")
@@ -101,6 +106,8 @@ struct AITutorView: View {
                 .padding(.vertical, StudySpacing.medium)
                 .animation(.spring(response: 0.35, dampingFraction: 0.8), value: vm.messages.count)
             }
+            // Dismiss keyboard when scrolling
+            .scrollDismissesKeyboard(.interactively)
             .onChange(of: vm.messages.count) { _ in
                 withAnimation(.spring(response: 0.4)) {
                     if let last = vm.messages.last { proxy.scrollTo(last.id, anchor: .bottom) }
@@ -110,6 +117,28 @@ struct AITutorView: View {
                 if loading { withAnimation { proxy.scrollTo("typing", anchor: .bottom) } }
             }
         }
+    }
+
+    private var retryButton: some View {
+        Button {
+            Task { await vm.retry() }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 12, weight: .semibold))
+                Text("Retry")
+                    .font(StudyFont.caption)
+                    .fontWeight(.semibold)
+            }
+            .foregroundStyle(StudyTheme.accent)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(StudyTheme.accentSoft)
+            .clipShape(Capsule())
+            .overlay(Capsule().stroke(StudyTheme.accent.opacity(0.3), lineWidth: 1))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.leading, 38)
     }
 
     private var emptyState: some View {

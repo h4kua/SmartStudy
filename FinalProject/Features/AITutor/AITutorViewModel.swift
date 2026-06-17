@@ -7,6 +7,13 @@ final class AITutorViewModel: ObservableObject {
     @Published var isLoading:     Bool          = false
     @Published var errorMessage:  String?
     @Published var isRecording:   Bool          = false
+    @Published var canRetry:      Bool          = false
+
+    /// The last failed user message — kept so we can retry.
+    private var lastFailedText: String?
+
+    /// Cap total messages to prevent unbounded memory growth in long sessions.
+    private let maxMessages = 100
 
     private let systemPrompt = """
     You are a helpful and encouraging AI academic tutor for university students. \
@@ -55,10 +62,27 @@ final class AITutorViewModel: ObservableObject {
         // BUG FIX: guard against concurrent sends (e.g. suggestion chip tapped while loading)
         guard !text.isEmpty, !isLoading else { return }
 
+        await sendMessage(text)
+    }
+
+    /// Retry the last failed message.
+    func retry() async {
+        guard let text = lastFailedText, !isLoading else { return }
+        // Remove the error reply before retrying
+        if let last = messages.last, last.role == "assistant",
+           last.content.hasPrefix("Sorry, I couldn't connect") {
+            messages.removeLast()
+        }
+        await sendMessage(text)
+    }
+
+    private func sendMessage(_ text: String) async {
         messages.append(ChatMessage(role: "user", content: text))
-        inputText  = ""
-        isLoading  = true
-        errorMessage = nil
+        inputText      = ""
+        isLoading      = true
+        errorMessage   = nil
+        canRetry       = false
+        lastFailedText = nil
 
         let history = messages.suffix(6).map { ["role": $0.role, "content": $0.content] }
 
@@ -70,12 +94,22 @@ final class AITutorViewModel: ObservableObject {
                 maxTokens:   450
             )
             messages.append(ChatMessage(role: "assistant", content: reply))
+            canRetry       = false
+            lastFailedText = nil
         } catch {
             let msg = (error as? GroqError)?.errorDescription ?? error.localizedDescription
             errorMessage = msg
+            lastFailedText = text
+            canRetry = true
             messages.append(ChatMessage(role: "assistant",
                                         content: "Sorry, I couldn't connect right now. Please check your internet connection and try again."))
         }
         isLoading = false
+
+        // Cap message history to prevent unbounded memory growth
+        if messages.count > maxMessages {
+            let greeting = messages[0]
+            messages = [greeting] + Array(messages.suffix(maxMessages - 1))
+        }
     }
 }

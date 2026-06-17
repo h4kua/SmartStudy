@@ -47,6 +47,7 @@ struct StudyCoachView: View {
     @State private var result: String = ""
     @State private var isGenerating = false
     @State private var serverStatus: ServerStatus = .checking
+    @State private var errorMessage: String?
 
     private enum ServerStatus { case checking, online, offline }
 
@@ -70,6 +71,20 @@ struct StudyCoachView: View {
                         case .online:
                             inputSection
                             generateButton
+                            if let err = errorMessage {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundStyle(StudyTheme.danger)
+                                    Text(err)
+                                        .font(StudyFont.caption)
+                                        .foregroundStyle(StudyTheme.danger)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                .padding(StudySpacing.medium)
+                                .background(StudyTheme.danger.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .transition(.opacity)
+                            }
                             if !result.isEmpty {
                                 resultCard
                                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -423,6 +438,7 @@ struct StudyCoachView: View {
         guard !isGenerating else { return }
         isGenerating = true
         result = ""
+        errorMessage = nil
 
         do {
             switch selectedMode {
@@ -439,7 +455,8 @@ struct StudyCoachView: View {
                 }
             }
         } catch {
-            result = "⚠️ \(error.localizedDescription)"
+            errorMessage = error.localizedDescription
+            result = ""
         }
 
         withAnimation(.spring(response: 0.5)) {

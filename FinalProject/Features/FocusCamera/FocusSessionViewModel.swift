@@ -43,6 +43,8 @@ final class FocusSessionViewModel: ObservableObject {
     @Published var permission:       CameraPermission  = .unknown
     @Published var voiceEnabled:     Bool              = true  // user can toggle
     @Published var isSpeaking:       Bool              = false
+    @Published var showSummary:      Bool              = false
+    @Published var sessionSummary:   String            = ""
 
     // Expose session for the camera preview layer.
     let cameraService = FocusCameraService()
@@ -119,13 +121,51 @@ final class FocusSessionViewModel: ObservableObject {
     }
 
     func stop() {
-        isActive = false
+        guard isActive else { return }
+
         cameraService.stop()
         voiceCoach.stop()
         timerCancellable?.cancel()
         timerCancellable = nil
         speakingCheckCancellable?.cancel()
         speakingCheckCancellable = nil
+
+        // Build session summary before clearing active state
+        if stats.totalSeconds > 5 {
+            sessionSummary = buildSummary()
+            showSummary = true
+        }
+
+        isActive = false
+    }
+
+    func dismissSummary() {
+        showSummary = false
+    }
+
+    private func buildSummary() -> String {
+        let total = stats.totalSeconds
+        let mins  = total / 60
+        let secs  = total % 60
+        let timeStr = mins > 0 ? "\(mins)m \(secs)s" : "\(secs)s"
+        let pct   = Int(stats.focusedPercent)
+        let avg   = Int(stats.avgScore)
+
+        let grade: String
+        switch pct {
+        case 80...:  grade = "Excellent focus session! 🎯"
+        case 60...:  grade = "Good session — keep it up! 👍"
+        case 40...:  grade = "Room for improvement. Try fewer distractions next time."
+        default:     grade = "Tough session. Consider a short break before trying again."
+        }
+
+        return """
+        Session Duration: \(timeStr)
+        Focus Score: \(avg)%
+        Time Focused: \(stats.focusedTimeString) (\(pct)%)
+
+        \(grade)
+        """
     }
 
     // MARK: - Private: per-second tick

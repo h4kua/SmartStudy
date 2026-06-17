@@ -226,7 +226,10 @@ struct QuizSessionView: View {
     // --- Next button ---
 
     private var nextButton: some View {
-        Button { vm.nextQuestion(store: store) } label: {
+        Button {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            vm.nextQuestion(store: store)
+        } label: {
             HStack(spacing: 8) {
                 Text(vm.isLastQuestion ? "Finish Quiz" : "Next Question")
                     .font(StudyFont.subtitle)

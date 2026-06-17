@@ -86,7 +86,7 @@ struct QuizView: View {
     // MARK: - Completed sessions
 
     private var completedSection: some View {
-        StudyCard(title: "Completed") {
+        StudyCard(title: "Completed (\(completedSessions.count))") {
             VStack(spacing: StudySpacing.small) {
                 ForEach(completedSessions.prefix(10)) { session in
                     Button { vm.startSession(session) } label: {
@@ -112,6 +112,20 @@ struct QuizView: View {
                             Text(session.percentage.percentString)
                                 .font(StudyFont.subtitle)
                                 .foregroundStyle(session.gradeColor)
+                        }
+                    }
+                    .contextMenu {
+                        Button { vm.startSession(session) } label: {
+                            Label("Review", systemImage: "eye")
+                        }
+                        Button { vm.retakeSession(session, store: store) } label: {
+                            Label("Retake", systemImage: "arrow.counterclockwise")
+                        }
+                        Divider()
+                        Button(role: .destructive) {
+                            withAnimation { store.deleteQuizSession(id: session.id) }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
                         }
                     }
                     if session.id != completedSessions.prefix(10).last?.id {

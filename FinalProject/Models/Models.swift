@@ -30,11 +30,15 @@ struct Subject: Identifiable, Codable, Hashable {
 // MARK: - Chat Message
 // ============================================================
 
-struct ChatMessage: Identifiable {
+struct ChatMessage: Identifiable, Equatable {
     let id      = UUID()
     let role: String        // "user" | "assistant"
     let content: String
     let date: Date = Date()
+
+    static func == (lhs: ChatMessage, rhs: ChatMessage) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
 // ============================================================

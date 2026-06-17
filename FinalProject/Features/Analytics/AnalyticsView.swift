@@ -131,18 +131,20 @@ struct AnalyticsView: View {
                 HStack(spacing: StudySpacing.medium) {
                     healthTile(
                         icon: "figure.walk",
-                        value: "\(health.todaySteps.formatted())",
+                        value: health.todaySteps > 0 ? "\(health.todaySteps.formatted())" : "—",
                         label: "Steps Today",
                         color: StudyTheme.success
                     )
                     Rectangle().fill(StudyTheme.surfaceStroke).frame(width: 1, height: 50)
                     healthTile(
                         icon: "bed.double.fill",
-                        value: String(format: "%.1fh", health.sleepHours),
+                        value: health.sleepHours > 0 ? String(format: "%.1fh", health.sleepHours) : "—",
                         label: "Sleep Last Night",
                         color: StudyTheme.accent
                     )
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Steps today: \(health.todaySteps). Sleep: \(String(format: "%.1f", health.sleepHours)) hours.")
             }
         }
     }

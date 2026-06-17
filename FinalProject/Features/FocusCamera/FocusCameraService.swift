@@ -29,6 +29,9 @@ final class FocusCameraService: NSObject {
     /// Called on `analysisQueue` — NOT main thread.
     var onResult: ((FaceDetectionResult) -> Void)?
 
+    /// Called once on sessionQueue if camera setup fails.
+    var onError: ((String) -> Void)?
+
     private let sessionQueue  = DispatchQueue(label: "focus.camera.session",  qos: .userInitiated)
     private let analysisQueue = DispatchQueue(label: "focus.camera.analysis", qos: .userInitiated)
 
@@ -68,13 +71,16 @@ final class FocusCameraService: NSObject {
         session.sessionPreset = .medium
 
         // Front camera
-        guard
-            let device = AVCaptureDevice.default(.builtInWideAngleCamera,
-                                                 for: .video, position: .front),
-            let input  = try? AVCaptureDeviceInput(device: device),
-            session.canAddInput(input)
-        else {
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera,
+                                                    for: .video, position: .front) else {
             session.commitConfiguration()
+            onError?("No front camera available on this device.")
+            return
+        }
+        guard let input = try? AVCaptureDeviceInput(device: device),
+              session.canAddInput(input) else {
+            session.commitConfiguration()
+            onError?("Could not configure camera input.")
             return
         }
         session.addInput(input)

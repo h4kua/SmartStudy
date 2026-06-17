@@ -49,6 +49,38 @@ final class TimerViewModel: ObservableObject {
 
     private var cancellable: AnyCancellable?
 
+    // Persist today's pomodoro count so it survives app restart
+    private static let todayCountKey = "timer.totalToday"
+    private static let todayDateKey  = "timer.todayDate"
+
+    init() {
+        loadTodayCount()
+    }
+
+    private func loadTodayCount() {
+        let savedDate = UserDefaults.standard.string(forKey: Self.todayDateKey) ?? ""
+        let today = todayString()
+        if savedDate == today {
+            totalToday = UserDefaults.standard.integer(forKey: Self.todayCountKey)
+        } else {
+            // New day — reset
+            totalToday = 0
+            UserDefaults.standard.set(today, forKey: Self.todayDateKey)
+            UserDefaults.standard.set(0, forKey: Self.todayCountKey)
+        }
+    }
+
+    private func saveTodayCount() {
+        UserDefaults.standard.set(todayString(), forKey: Self.todayDateKey)
+        UserDefaults.standard.set(totalToday, forKey: Self.todayCountKey)
+    }
+
+    private func todayString() -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: Date())
+    }
+
     // MARK: - Computed
 
     var progress: Double {
@@ -117,6 +149,7 @@ final class TimerViewModel: ObservableObject {
         if phase == .focus {
             pomodorosDone += 1
             totalToday    += 1
+            saveTodayCount()
         }
         advance()
     }

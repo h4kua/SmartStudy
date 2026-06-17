@@ -269,14 +269,28 @@ final class LearningStore: ObservableObject {
     private func saveFlashcardDecks(){ save(flashcardDecks,    to: Key.decks) }
     private func saveDocuments()     { save(analyzedDocuments,  to: Key.documents) }
 
+    /// Reuse encoder/decoder — creating them is expensive.
+    private static let encoder = JSONEncoder()
+    private static let decoder = JSONDecoder()
+
     private func save<T: Encodable>(_ value: T, to key: String) {
-        guard let data = try? JSONEncoder().encode(value) else { return }
-        UserDefaults.standard.set(data, forKey: key)
+        do {
+            let data = try Self.encoder.encode(value)
+            UserDefaults.standard.set(data, forKey: key)
+        } catch {
+            // Silent `try?` hides data corruption — log so we can diagnose
+            print("⚠️ LearningStore: failed to save \(key): \(error.localizedDescription)")
+        }
     }
 
     private func load<T: Decodable>(_ type: T.Type, from key: String) -> T? {
         guard let data = UserDefaults.standard.data(forKey: key) else { return nil }
-        return try? JSONDecoder().decode(type, from: data)
+        do {
+            return try Self.decoder.decode(type, from: data)
+        } catch {
+            print("⚠️ LearningStore: failed to load \(key): \(error.localizedDescription)")
+            return nil
+        }
     }
 
     private func load() {

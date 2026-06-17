@@ -91,6 +91,11 @@ final class SpeechService: ObservableObject {
         request     = nil
         task        = nil
         isListening = false
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+
+        // Restore audio session so other audio (e.g. FocusVoiceCoach TTS) can play.
+        // Previously only deactivated — left the category as .record, which blocked playback.
+        let session = AVAudioSession.sharedInstance()
+        try? session.setActive(false, options: .notifyOthersOnDeactivation)
+        try? session.setCategory(.playback, mode: .default)
     }
 }

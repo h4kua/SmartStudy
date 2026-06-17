@@ -37,6 +37,12 @@ final class GroqService {
     private let endpoint  = URL(string: "https://api.groq.com/openai/v1/chat/completions")!
     private let modelID   = "llama-3.3-70b-versatile"
 
+    /// Reuse decoders — creating them is surprisingly expensive.
+    private let decoder = JSONDecoder()
+
+    /// Maximum automatic retries for transient network errors (timeout, 429, 5xx).
+    private let maxRetries = 2
+
     private var apiKey: String {
         ProcessInfo.processInfo.environment["GROQ_API_KEY"] ?? ""
     }
@@ -99,7 +105,7 @@ final class GroqService {
         }
 
         do {
-            let dto = try JSONDecoder().decode(DTO.self, from: data)
+            let dto = try decoder.decode(DTO.self, from: data)
             return AnalyzedDocument(
                 title: title,
                 originalText: text,
@@ -157,7 +163,7 @@ final class GroqService {
         }
 
         do {
-            let dtos = try JSONDecoder().decode([DTO].self, from: data)
+            let dtos = try decoder.decode([DTO].self, from: data)
             return dtos.prefix(count).map { dto in
                 QuizQuestion(
                     question: dto.question,
@@ -211,7 +217,7 @@ final class GroqService {
         }
 
         do {
-            let dtos = try JSONDecoder().decode([DTO].self, from: data)
+            let dtos = try decoder.decode([DTO].self, from: data)
             return dtos.prefix(count).map { dto in
                 Flashcard(
                     front: dto.front,
@@ -248,27 +254,58 @@ final class GroqService {
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
         req.timeoutInterval = 45
 
-        let (data, response) = try await URLSession.shared.data(for: req)
-
-        if let http = response as? HTTPURLResponse, http.statusCode != 200 {
-            let body = String(data: data, encoding: .utf8) ?? "no body"
-            print("❌ Groq HTTP \(http.statusCode): \(body)")
-            throw GroqError.httpError(http.statusCode)
-        }
-
-        struct GroqResponse: Codable {
-            struct Choice: Codable {
-                struct Message: Codable { let content: String }
-                let message: Message
+        // Retry loop for transient errors (429 rate-limit, 5xx server, timeout)
+        var lastError: Error?
+        for attempt in 0...maxRetries {
+            if attempt > 0 {
+                // Exponential backoff: 1s, 2s
+                let delay = UInt64(attempt) * 1_000_000_000
+                try? await Task.sleep(nanoseconds: delay)
             }
-            let choices: [Choice]
-        }
 
-        let decoded = try JSONDecoder().decode(GroqResponse.self, from: data)
-        guard let content = decoded.choices.first?.message.content, !content.isEmpty else {
-            throw GroqError.emptyResponse
+            do {
+                let (data, response) = try await URLSession.shared.data(for: req)
+
+                if let http = response as? HTTPURLResponse, http.statusCode != 200 {
+                    let responseBody = String(data: data, encoding: .utf8) ?? "no body"
+                    print("❌ Groq HTTP \(http.statusCode) (attempt \(attempt + 1)): \(responseBody)")
+
+                    // Retry on rate-limit or server errors; give up on 4xx client errors
+                    let retryable = http.statusCode == 429 || http.statusCode >= 500
+                    if retryable && attempt < maxRetries {
+                        lastError = GroqError.httpError(http.statusCode)
+                        continue
+                    }
+                    throw GroqError.httpError(http.statusCode)
+                }
+
+                let decoded = try decoder.decode(GroqResponse.self, from: data)
+                guard let content = decoded.choices.first?.message.content, !content.isEmpty else {
+                    throw GroqError.emptyResponse
+                }
+                return content
+
+            } catch let error as GroqError {
+                throw error
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                // URLSession timeout / network error → retry
+                lastError = error
+                if attempt < maxRetries { continue }
+                throw error
+            }
         }
-        return content
+        throw lastError ?? GroqError.invalidResponse
+    }
+
+    /// Decodes the Groq chat completion response.
+    private struct GroqResponse: Codable {
+        struct Choice: Codable {
+            struct Message: Codable { let content: String }
+            let message: Message
+        }
+        let choices: [Choice]
     }
 
     /// Removes markdown code fences (```json ... ``` or ``` ... ```) that the model sometimes wraps around JSON.

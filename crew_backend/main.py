@@ -17,17 +17,22 @@ Start the server
 """
 
 import os
+import time
+import logging
 from dotenv import load_dotenv
 
 # Load .env before importing crew (crew reads GROQ_API_KEY at import time)
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional
 
 from crew import StudyPlanCrew, PerformanceReviewCrew
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -46,6 +51,25 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Request logging middleware — logs method, path, and duration
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = time.time() - start
+    logger.info(f"{request.method} {request.url.path} → {response.status_code} ({duration:.1f}s)")
+    return response
+
+
+@app.on_event("startup")
+async def startup_check():
+    """Validate config on startup so errors surface immediately."""
+    if not os.getenv("GROQ_API_KEY"):
+        logger.warning("⚠️  GROQ_API_KEY not set — AI endpoints will fail. Add it to .env")
+    else:
+        logger.info("✅ GROQ_API_KEY configured")
 
 
 # ─────────────────────────────────────────────────────────────

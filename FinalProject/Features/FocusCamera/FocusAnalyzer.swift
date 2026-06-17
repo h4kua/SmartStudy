@@ -82,8 +82,10 @@ struct FocusAnalyzer {
     static func state(from result: FaceDetectionResult) -> AttentionState {
         guard result.hasFace else { return .away }
         let avgEAR = (result.leftEyeAR + result.rightEyeAR) / 2.0
-        if avgEAR < 0.17          { return .drowsy }
-        if abs(result.yaw) > 0.48 { return .distracted }
+        // Drowsy: eyes closing OR head drooping forward (negative pitch)
+        if avgEAR < 0.17                           { return .drowsy }
+        if result.pitch < -0.40 && avgEAR < 0.22   { return .drowsy }
+        if abs(result.yaw) > 0.48                   { return .distracted }
         return .focused
     }
 

@@ -39,11 +39,22 @@ struct FlashcardsView: View {
     // MARK: - Deck list
 
     private var deckList: some View {
-        StudyCard(title: "My Decks") {
+        StudyCard(title: "My Decks (\(store.flashcardDecks.count))") {
             VStack(spacing: StudySpacing.small) {
                 ForEach(store.flashcardDecks) { deck in
                     Button { vm.startReview(deck: deck) } label: {
                         deckRow(deck)
+                    }
+                    .contextMenu {
+                        Button { vm.startReview(deck: deck) } label: {
+                            Label("Review", systemImage: "rectangle.on.rectangle")
+                        }
+                        Divider()
+                        Button(role: .destructive) {
+                            withAnimation { store.deleteFlashcardDeck(id: deck.id) }
+                        } label: {
+                            Label("Delete Deck", systemImage: "trash")
+                        }
                     }
                     if deck.id != store.flashcardDecks.last?.id {
                         Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
