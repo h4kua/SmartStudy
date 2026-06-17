@@ -19,6 +19,7 @@
 		SUBJMG01SUBJMG01BLDF /* SubjectManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SUBJMG01SUBJMG01STDY /* SubjectManagementView.swift */; };
 		CREWSVC01CREWSVC01BLDF /* CrewAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWSVC01CREWSVC01STDY /* CrewAIService.swift */; };
 		CREWVW001CREWVW001BLDF /* StudyCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWVW001CREWVW001STDY /* StudyCoachView.swift */; };
+		FCAVC001FCAVC001BLDF /* FocusVoiceCoach.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAVC001FCAVC001STDY /* FocusVoiceCoach.swift */; };
 		FCAMSVC01FCAMSVC01BLDF /* FocusCameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */; };
 		FCANL001FCANL001BLDF /* FocusAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCANL001FCANL001STDY /* FocusAnalyzer.swift */; };
 		FCAVML01FCAVML01BLDF /* FocusSessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */; };
@@ -113,6 +114,7 @@
 		NOTFSVC01NOTFSVC01STDY /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		CREWSVC01CREWSVC01STDY /* CrewAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrewAIService.swift; sourceTree = "<group>"; };
 		CREWVW001CREWVW001STDY /* StudyCoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyCoachView.swift; sourceTree = "<group>"; };
+		FCAVC001FCAVC001STDY /* FocusVoiceCoach.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusVoiceCoach.swift; sourceTree = "<group>"; };
 		FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusCameraService.swift; sourceTree = "<group>"; };
 		FCANL001FCANL001STDY /* FocusAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusAnalyzer.swift; sourceTree = "<group>"; };
 		FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSessionViewModel.swift; sourceTree = "<group>"; };
@@ -341,6 +343,7 @@
 		GRP_FCAM_0000000000017 /* FocusCamera */ = {
 			isa = PBXGroup;
 			children = (
+				FCAVC001FCAVC001STDY /* FocusVoiceCoach.swift */,
 				FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */,
 				FCANL001FCANL001STDY /* FocusAnalyzer.swift */,
 				FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */,
@@ -554,6 +557,7 @@
 				SUBJMG01SUBJMG01BLDF /* SubjectManagementView.swift in Sources */,
 				CREWSVC01CREWSVC01BLDF /* CrewAIService.swift in Sources */,
 				CREWVW001CREWVW001BLDF /* StudyCoachView.swift in Sources */,
+				FCAVC001FCAVC001BLDF /* FocusVoiceCoach.swift in Sources */,
 				FCAMSVC01FCAMSVC01BLDF /* FocusCameraService.swift in Sources */,
 				FCANL001FCANL001BLDF /* FocusAnalyzer.swift in Sources */,
 				FCAVML01FCAVML01BLDF /* FocusSessionViewModel.swift in Sources */,

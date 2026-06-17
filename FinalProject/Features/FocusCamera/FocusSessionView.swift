@@ -82,6 +82,7 @@ struct FocusSessionView: View {
 
     private var topBar: some View {
         HStack {
+            // Close
             Button { dismiss() } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 15, weight: .semibold))
@@ -90,7 +91,10 @@ struct FocusSessionView: View {
                     .background(.ultraThinMaterial)
                     .clipShape(Circle())
             }
+
             Spacer()
+
+            // Center — LIVE badge or title
             if vm.isActive {
                 HStack(spacing: 6) {
                     Circle()
@@ -108,9 +112,28 @@ struct FocusSessionView: View {
                     .font(StudyFont.subtitle)
                     .foregroundStyle(.white.opacity(0.85))
             }
+
             Spacer()
-            // Balance the close button width
-            Color.clear.frame(width: 36, height: 36)
+
+            // Voice toggle + speaking indicator
+            Button { vm.toggleVoice() } label: {
+                ZStack {
+                    Circle()
+                        .fill(vm.voiceEnabled
+                              ? (vm.isSpeaking
+                                 ? StudyTheme.accent.opacity(0.50)
+                                 : Color.white.opacity(0.18))
+                              : Color.white.opacity(0.08))
+                        .frame(width: 36, height: 36)
+
+                    Image(systemName: vm.voiceEnabled
+                          ? (vm.isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2.fill")
+                          : "speaker.slash.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(vm.voiceEnabled ? .white : .white.opacity(0.40))
+                        .opacity(vm.isSpeaking ? 1.0 : 0.85)
+                }
+            }
         }
         .padding(.top, StudySpacing.large)
     }
@@ -191,12 +214,28 @@ struct FocusSessionView: View {
             // Metric row
             metricRow
 
-            // Message
-            Text(vm.focusState.message)
-                .font(StudyFont.caption)
-                .foregroundStyle(.white.opacity(0.65))
-                .multilineTextAlignment(.center)
-                .animation(.easeInOut(duration: 0.4), value: vm.focusState.rawValue)
+            // Voice status / message
+            VStack(spacing: 6) {
+                if vm.isSpeaking {
+                    HStack(spacing: 6) {
+                        Image(systemName: "waveform")
+                            .font(.system(size: 11))
+                            .foregroundStyle(StudyTheme.accent)
+                        Text("Voice Coach speaking…")
+                            .font(StudyFont.tiny)
+                            .foregroundStyle(StudyTheme.accent)
+                    }
+                    .transition(.opacity)
+                } else {
+                    Text(vm.focusState.message)
+                        .font(StudyFont.caption)
+                        .foregroundStyle(.white.opacity(0.65))
+                        .multilineTextAlignment(.center)
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut(duration: 0.35), value: vm.isSpeaking)
+            .animation(.easeInOut(duration: 0.4),  value: vm.focusState.rawValue)
         }
     }
 
