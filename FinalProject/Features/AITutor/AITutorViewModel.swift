@@ -42,9 +42,18 @@ final class AITutorViewModel: ObservableObject {
         }
     }
 
+    func clearChat() {
+        messages = [
+            ChatMessage(role: "assistant",
+                        content: "Hi! I'm your AI Academic Tutor. Ask me to explain any concept, help with homework, or suggest a study strategy. What are you working on?")
+        ]
+        errorMessage = nil
+    }
+
     func send() async {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
+        // BUG FIX: guard against concurrent sends (e.g. suggestion chip tapped while loading)
+        guard !text.isEmpty, !isLoading else { return }
 
         messages.append(ChatMessage(role: "user", content: text))
         inputText  = ""

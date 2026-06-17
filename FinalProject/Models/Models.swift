@@ -196,31 +196,6 @@ struct AnalyzedDocument: Identifiable, Codable {
 }
 
 // ============================================================
-// MARK: - Legacy models (used by existing views — removed in Step 7)
-// ============================================================
-
-struct StudySession: Identifiable, Codable {
-    var id: UUID = UUID()
-    var subjectId: UUID?
-    var subjectName: String?
-    var startDate: Date
-    var durationMinutes: Int
-    var sessionType: SessionType
-
-    enum SessionType: String, Codable { case work, shortBreak, longBreak }
-    var isToday: Bool { Calendar.current.isDateInToday(startDate) }
-}
-
-struct PomodoroConfig: Codable, Equatable {
-    var workMinutes: Int             = 25
-    var shortBreakMinutes: Int       = 5
-    var longBreakMinutes: Int        = 15
-    var longBreakAfterPomodoros: Int = 4
-    var dailyGoalHours: Double       = 4.0
-    var autoStartBreaks: Bool        = true
-}
-
-// ============================================================
 // MARK: - Color hex initialiser
 // ============================================================
 

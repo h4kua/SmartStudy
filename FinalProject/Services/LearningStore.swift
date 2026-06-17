@@ -205,7 +205,8 @@ final class LearningStore: ObservableObject {
     /// True when the user had any quiz or flashcard activity on `date`.
     func hasActivity(on date: Date) -> Bool {
         let cal = Calendar.current
-        let quiz  = quizSessions.contains { cal.isDate($0.createdDate, inSameDayAs: date) }
+        // BUG FIX: only count *completed* quizzes — incomplete sessions should not inflate streak
+        let quiz  = quizSessions.contains { $0.isCompleted && cal.isDate($0.createdDate, inSameDayAs: date) }
         let cards = flashcardDecks.contains { deck in
             guard let d = deck.lastReviewedDate else { return false }
             return cal.isDate(d, inSameDayAs: date)
@@ -215,12 +216,18 @@ final class LearningStore: ObservableObject {
 
     // ---------- Weekly chart ----------
 
+    // BUG FIX: DateFormatter is expensive — use a static instance instead of creating one per call
+    private static let dayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "EEE"
+        return f
+    }()
+
     /// Activity count per day for the last 7 days.
     /// Index 0 = oldest (6 days ago), index 6 = today.
     var last7DaysActivity: [(label: String, count: Int)] {
-        let formatter       = DateFormatter()
-        formatter.dateFormat = "EEE"
-        let cal             = Calendar.current
+        let formatter = LearningStore.dayFormatter
+        let cal       = Calendar.current
 
         return (0..<7).reversed().map { daysAgo in
             let date = cal.date(byAdding: .day, value: -daysAgo, to: Date()) ?? Date()
@@ -236,6 +243,21 @@ final class LearningStore: ObservableObject {
 
             return (formatter.string(from: date), quizCount + deckCount)
         }
+    }
+
+    // =========================================================
+    // MARK: - Clear all data
+    // =========================================================
+
+    /// Resets all learning data (quizzes, decks, documents) and persists the empty state.
+    /// BUG FIX: previously SettingsView modified arrays directly and hardcoded key strings.
+    func clearAllLearningData() {
+        quizSessions      = []
+        flashcardDecks    = []
+        analyzedDocuments = []
+        saveQuizSessions()
+        saveFlashcardDecks()
+        saveDocuments()
     }
 
     // =========================================================

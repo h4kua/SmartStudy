@@ -4,6 +4,7 @@ struct AnalyticsView: View {
     @EnvironmentObject var store: LearningStore
     @ObservedObject private var health = HealthKitService.shared
     @State private var showSettings = false
+    @State private var chartAnimated = false
 
     var body: some View {
         NavigationStack {
@@ -24,6 +25,11 @@ struct AnalyticsView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showSettings) { SettingsView() }
             .task { await health.requestAuthorization() }
+            .onAppear {
+                withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.3)) {
+                    chartAnimated = true
+                }
+            }
         }
     }
 
@@ -52,19 +58,27 @@ struct AnalyticsView: View {
     // MARK: - Summary tiles
 
     private var summaryRow: some View {
-        HStack(spacing: StudySpacing.medium) {
-            summaryTile(icon: "flame.fill",
-                        value: "\(store.currentStreak)",
-                        label: "Day Streak",
-                        color: .orange)
-            summaryTile(icon: "checkmark.circle.fill",
-                        value: "\(store.totalQuizzesTaken)",
-                        label: "Quizzes",
-                        color: StudyTheme.accent)
-            summaryTile(icon: "rectangle.on.rectangle.fill",
-                        value: "\(store.totalFlashcardsReviewed)",
-                        label: "Cards",
-                        color: StudyTheme.longBreakColor)
+        VStack(spacing: StudySpacing.medium) {
+            HStack(spacing: StudySpacing.medium) {
+                summaryTile(icon: "flame.fill",
+                            value: "\(store.currentStreak)",
+                            label: "Day Streak",
+                            color: .orange)
+                summaryTile(icon: "checkmark.circle.fill",
+                            value: "\(store.totalQuizzesTaken)",
+                            label: "Quizzes",
+                            color: StudyTheme.accent)
+            }
+            HStack(spacing: StudySpacing.medium) {
+                summaryTile(icon: "rectangle.on.rectangle.fill",
+                            value: "\(store.totalFlashcardsReviewed)",
+                            label: "Cards Reviewed",
+                            color: StudyTheme.longBreakColor)
+                summaryTile(icon: "clock.fill",
+                            value: store.totalStudyMinutes.minutesToHoursString,
+                            label: "Study Time",
+                            color: StudyTheme.shortBreakColor)
+            }
         }
     }
 
@@ -175,8 +189,13 @@ struct AnalyticsView: View {
                                 .fill(isToday
                                       ? AnyShapeStyle(StudyTheme.accentGradient)
                                       : AnyShapeStyle(StudyTheme.accent.opacity(0.28)))
-                                .frame(width: barWidth, height: barH)
+                                .frame(width: barWidth, height: chartAnimated ? barH : 4)
                                 .frame(width: barWidth, height: chartH, alignment: .bottom)
+                                .animation(
+                                    .spring(response: 0.6, dampingFraction: 0.7)
+                                        .delay(Double(idx) * 0.06),
+                                    value: chartAnimated
+                                )
                         }
                     }
                 }

@@ -27,9 +27,17 @@ final class HealthKitService: ObservableObject {
 
         do {
             try await hkStore.requestAuthorization(toShare: [], read: readTypes)
-            isAuthorized = true
+            // BUG FIX: requestAuthorization does NOT throw when user denies.
+            // Check actual status for at least one type to set isAuthorized correctly.
+            if let stepsType = HKQuantityType.quantityType(forIdentifier: .stepCount) {
+                let status = hkStore.authorizationStatus(for: stepsType)
+                isAuthorized = (status == .sharingAuthorized)
+            } else {
+                isAuthorized = true
+            }
             await loadData()
         } catch {
+            isAuthorized = false
             print("HealthKit authorization failed: \(error)")
         }
     }

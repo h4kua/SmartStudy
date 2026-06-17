@@ -274,17 +274,26 @@ final class GroqService {
     /// Removes markdown code fences (```json ... ``` or ``` ... ```) that the model sometimes wraps around JSON.
     private func stripCodeFences(_ text: String) -> String {
         var s = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        if s.hasPrefix("```") {
-            // Remove opening fence line
-            if let newline = s.range(of: "\n") {
-                s = String(s[newline.upperBound...])
+        guard s.hasPrefix("```") else { return s }
+
+        // Remove opening fence line (with or without language tag e.g. "```json")
+        // BUG FIX: if there's no newline (e.g. "```json{...}```"), skip past the ``` prefix itself
+        if let newline = s.range(of: "\n") {
+            s = String(s[newline.upperBound...])
+        } else {
+            // No newline — strip only the opening ``` and any language tag up to the first {/[
+            s = String(s.dropFirst(3))
+            if let braceOrBracket = s.firstIndex(where: { $0 == "{" || $0 == "[" }) {
+                s = String(s[braceOrBracket...])
             }
-            // Remove closing fence
-            if s.hasSuffix("```") {
-                s = String(s.dropLast(3))
-            }
-            s = s.trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        return s
+
+        // Remove closing fence (handle possible trailing newline before ```)
+        let trimmedEnd = s.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedEnd.hasSuffix("```") {
+            s = String(trimmedEnd.dropLast(3))
+        }
+
+        return s.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

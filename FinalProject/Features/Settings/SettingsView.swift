@@ -1,15 +1,22 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @EnvironmentObject var store: LearningStore
-    @State private var showClearConfirm = false
+    @EnvironmentObject var store:  LearningStore
+    @EnvironmentObject var auth:   FirebaseAuthService
+    @ObservedObject private var notif = NotificationService.shared
+    @State private var showClearConfirm    = false
+    @State private var showSignOutConfirm  = false
+    @State private var showSubjectManager  = false
+    @State private var reminderTime        = Date()
 
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: StudySpacing.large) {
                     appHeader
+                    if auth.currentUser?.isAnonymous == true { guestBanner }
                     statsCard
+                    notificationsCard
                     apiKeyCard
                     subjectsCard
                     dangerZone
@@ -26,6 +33,44 @@ struct SettingsView: View {
         } message: {
             Text("This will permanently delete all quizzes, flashcard decks, and analyzed documents. This cannot be undone.")
         }
+        .alert("Sign Out?", isPresented: $showSignOutConfirm) {
+            Button("Sign Out", role: .destructive) { auth.signOut() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You'll need to sign in again to access the app.")
+        }
+    }
+
+    // MARK: - Guest banner
+
+    private var guestBanner: some View {
+        HStack(spacing: StudySpacing.medium) {
+            Image(systemName: "person.fill.questionmark")
+                .font(.system(size: 20))
+                .foregroundStyle(StudyTheme.warning)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("You're in Guest Mode")
+                    .font(StudyFont.caption).fontWeight(.semibold)
+                    .foregroundStyle(StudyTheme.primaryText)
+                Text("Sign in to save your progress across devices.")
+                    .font(StudyFont.tiny)
+                    .foregroundStyle(StudyTheme.secondaryText)
+            }
+            Spacer()
+            Button("Sign In") { showSignOutConfirm = true } // signs out → back to auth
+                .font(StudyFont.tiny).fontWeight(.semibold)
+                .foregroundStyle(StudyTheme.warning)
+                .padding(.horizontal, 12).padding(.vertical, 6)
+                .background(StudyTheme.warning.opacity(0.15))
+                .clipShape(Capsule())
+        }
+        .padding(StudySpacing.medium)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(StudyTheme.warning.opacity(0.08))
+                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(StudyTheme.warning.opacity(0.25), lineWidth: 1))
+        )
     }
 
     // MARK: - App header
@@ -46,9 +91,87 @@ struct SettingsView: View {
             Text("Version 1.0  ·  iOS Application Development")
                 .font(StudyFont.caption)
                 .foregroundStyle(StudyTheme.secondaryText)
+            // Signed-in user chip
+            if let user = auth.currentUser {
+                HStack(spacing: 6) {
+                    Image(systemName: user.isAnonymous ? "person.fill.questionmark" : "checkmark.seal.fill")
+                        .font(.system(size: 11))
+                        .foregroundStyle(user.isAnonymous ? StudyTheme.warning : StudyTheme.success)
+                    Text(user.isAnonymous ? "Guest Account" : user.email)
+                        .font(StudyFont.tiny)
+                        .foregroundStyle(StudyTheme.secondaryText)
+                }
+                .padding(.horizontal, 10).padding(.vertical, 4)
+                .background(StudyTheme.surface2)
+                .clipShape(Capsule())
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.top, StudySpacing.large)
+    }
+
+    // MARK: - Notifications card
+
+    private var notificationsCard: some View {
+        StudyCard(title: "Study Reminders") {
+            VStack(spacing: StudySpacing.medium) {
+                // Toggle row
+                HStack {
+                    Label("Daily Reminder", systemImage: "bell.fill")
+                        .font(StudyFont.body)
+                        .foregroundStyle(StudyTheme.primaryText)
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { notif.reminderEnabled && notif.isAuthorized },
+                        set: { val in
+                            if val && !notif.isAuthorized {
+                                Task { await notif.requestPermission() }
+                            } else {
+                                notif.setReminderEnabled(val)
+                            }
+                        }
+                    ))
+                    .tint(StudyTheme.accent)
+                }
+
+                if notif.reminderEnabled && notif.isAuthorized {
+                    Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
+
+                    // Time picker
+                    HStack {
+                        Image(systemName: "clock.fill")
+                            .foregroundStyle(StudyTheme.accent)
+                            .frame(width: 20)
+                        Text("Reminder Time")
+                            .font(StudyFont.body)
+                            .foregroundStyle(StudyTheme.primaryText)
+                        Spacer()
+                        DatePicker("", selection: $reminderTime, displayedComponents: .hourAndMinute)
+                            .labelsHidden()
+                            .colorScheme(.dark)
+                            .onChange(of: reminderTime) { t in
+                                let comps = Calendar.current.dateComponents([.hour, .minute], from: t)
+                                notif.setReminderTime(hour: comps.hour ?? 19, minute: comps.minute ?? 0)
+                            }
+                    }
+                }
+
+                if !notif.isAuthorized {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(StudyTheme.warning)
+                        Text("Enable notifications in iOS Settings to receive reminders.")
+                            .font(StudyFont.tiny)
+                            .foregroundStyle(StudyTheme.secondaryText)
+                    }
+                }
+            }
+        }
+        .task { await notif.checkStatus() }
+        .sheet(isPresented: $showSubjectManager) {
+            SubjectManagementView().environmentObject(store)
+        }
     }
 
     // MARK: - Stats snapshot
@@ -154,7 +277,7 @@ struct SettingsView: View {
     private var subjectsCard: some View {
         StudyCard(title: "Subjects (\(store.subjects.count))") {
             VStack(spacing: StudySpacing.small) {
-                ForEach(store.subjects) { subject in
+                ForEach(store.subjects.prefix(4)) { subject in
                     HStack(spacing: StudySpacing.medium) {
                         Circle()
                             .fill(subject.color)
@@ -164,11 +287,33 @@ struct SettingsView: View {
                             .foregroundStyle(StudyTheme.primaryText)
                         Spacer()
                     }
-                    if subject.id != store.subjects.last?.id {
+                    if subject.id != store.subjects.prefix(4).last?.id {
                         Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
                     }
                 }
+                if store.subjects.count > 4 {
+                    Text("+\(store.subjects.count - 4) more")
+                        .font(StudyFont.tiny)
+                        .foregroundStyle(StudyTheme.tertiaryText)
+                }
+
+                Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
+
+                Button { showSubjectManager = true } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.system(size: 14))
+                        Text("Manage Subjects")
+                            .font(StudyFont.caption)
+                    }
+                    .foregroundStyle(StudyTheme.accent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                }
             }
+        }
+        .sheet(isPresented: $showSubjectManager) {
+            SubjectManagementView().environmentObject(store)
         }
     }
 
@@ -184,6 +329,24 @@ struct SettingsView: View {
                     Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
                     infoRow(icon: "person.fill",        label: "Developer", value: "Juan")
                 }
+            }
+
+            Button {
+                showSignOutConfirm = true
+            } label: {
+                HStack(spacing: StudySpacing.small) {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                    Text("Sign Out")
+                        .font(StudyFont.subtitle)
+                }
+                .foregroundStyle(StudyTheme.warning)
+                .frame(maxWidth: .infinity).frame(height: 52)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(StudyTheme.warning.opacity(0.10))
+                        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(StudyTheme.warning.opacity(0.25), lineWidth: 1))
+                )
             }
 
             Button {
@@ -222,11 +385,7 @@ struct SettingsView: View {
     }
 
     private func clearAllData() {
-        store.quizSessions.removeAll()
-        store.flashcardDecks.removeAll()
-        store.analyzedDocuments.removeAll()
-        UserDefaults.standard.removeObject(forKey: "mentor.quizSessions")
-        UserDefaults.standard.removeObject(forKey: "mentor.flashcardDecks")
-        UserDefaults.standard.removeObject(forKey: "mentor.analyzedDocuments")
+        // BUG FIX: delegate to store so keys stay in sync and state is properly persisted
+        store.clearAllLearningData()
     }
 }

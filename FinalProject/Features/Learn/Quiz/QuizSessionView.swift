@@ -3,6 +3,7 @@ import SwiftUI
 struct QuizSessionView: View {
     @EnvironmentObject var store: LearningStore
     @ObservedObject var vm: QuizViewModel
+    @State private var showFullReview = false
 
     var body: some View {
         ZStack {
@@ -18,6 +19,11 @@ struct QuizSessionView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: vm.showResults)
+        .sheet(isPresented: $showFullReview) {
+            if let session = vm.activeSession {
+                QuizReviewView(session: session)
+            }
+        }
     }
 
     // =========================================================
@@ -155,6 +161,9 @@ struct QuizSessionView: View {
         }()
 
         return Button {
+            let isCorrect = vm.currentQuestion?.correctIndex == index
+            let feedback = UINotificationFeedbackGenerator()
+            feedback.notificationOccurred(isCorrect ? .success : .error)
             vm.selectAnswer(index, store: store)
         } label: {
             HStack(spacing: StudySpacing.medium) {
@@ -381,6 +390,18 @@ struct QuizSessionView: View {
     private var actionButtons: some View {
         VStack(spacing: StudySpacing.small) {
             if let session = vm.activeSession {
+                // Full Review button — opens QuizReviewView
+                Button {
+                    showFullReview = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "list.bullet.clipboard.fill")
+                        Text("Review All Answers").font(StudyFont.subtitle)
+                    }
+                    .frame(maxWidth: .infinity).frame(height: 52)
+                }
+                .buttonStyle(PrimaryStudyButtonStyle())
+
                 Button {
                     vm.retakeSession(session, store: store)
                 } label: {
@@ -390,7 +411,7 @@ struct QuizSessionView: View {
                     }
                     .frame(maxWidth: .infinity).frame(height: 52)
                 }
-                .buttonStyle(PrimaryStudyButtonStyle())
+                .buttonStyle(GhostStudyButtonStyle())
             }
 
             Button { vm.dismissSession() } label: {

@@ -12,8 +12,16 @@ struct DocumentAnalyzerView: View {
 
                 if vm.result == nil {
                     inputScrollView
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .leading).combined(with: .opacity),
+                            removal: .move(edge: .leading).combined(with: .opacity)
+                        ))
                 } else {
                     resultsScrollView
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .trailing).combined(with: .opacity)
+                        ))
                 }
 
                 // Success banner

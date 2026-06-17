@@ -4,15 +4,26 @@ struct DashboardView: View {
     @EnvironmentObject var store: LearningStore
     @Binding var selectedTab: Int
     @State private var showSettings = false
+    @State private var appeared = false
 
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: StudySpacing.large) {
                     heroBanner
+                        .scaleEffect(appeared ? 1 : 0.96)
+                        .opacity(appeared ? 1 : 0)
                     quickActionsRow
-                    if !store.recentQuizSessions.isEmpty { recentQuizzesCard }
-                    if !store.recentDecks.isEmpty         { recentDecksCard   }
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 12)
+                    if !store.recentQuizSessions.isEmpty {
+                        recentQuizzesCard
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                    if !store.recentDecks.isEmpty {
+                        recentDecksCard
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
                     if store.recentQuizSessions.isEmpty && store.recentDecks.isEmpty {
                         gettingStartedCard
                     }
@@ -22,10 +33,16 @@ struct DashboardView: View {
             }
             .background(StudyTheme.backgroundGradient.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
+            .onAppear {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                    appeared = true
+                }
+            }
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
                 .environmentObject(store)
+                .environmentObject(FirebaseAuthService.shared)
         }
     }
 
@@ -51,13 +68,12 @@ struct DashboardView: View {
                     .padding(.horizontal, 10).padding(.vertical, 5)
                     .background(.white.opacity(0.14), in: Capsule())
                 }
-                // Settings gear
                 Button { showSettings = true } label: {
                     Image(systemName: "gearshape.fill")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.80))
                         .frame(width: 32, height: 32)
-                        .background(.white.opacity(0.14))
+                        .background(.ultraThinMaterial.opacity(0.4))
                         .clipShape(Circle())
                 }
             }
@@ -66,10 +82,21 @@ struct DashboardView: View {
                 Text("\(store.totalQuizzesTaken)")
                     .font(.system(size: 46, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
+                    .contentTransition(.numericText())
                 Text("quizzes completed")
                     .font(StudyFont.body)
                     .foregroundStyle(.white.opacity(0.60))
                     .padding(.bottom, 6)
+            }
+
+            if store.totalStudyMinutes > 0 {
+                HStack(spacing: 6) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 10))
+                    Text("\(store.totalStudyMinutes.minutesToHoursString) total study time")
+                        .font(StudyFont.caption)
+                }
+                .foregroundStyle(.white.opacity(0.55))
             }
 
             Text(motivationalText)
@@ -82,6 +109,7 @@ struct DashboardView: View {
             ZStack(alignment: .topTrailing) {
                 RoundedRectangle(cornerRadius: StudyRadius.xLarge, style: .continuous)
                     .fill(StudyTheme.focusGradient)
+                // Glow orbs
                 Circle()
                     .fill(StudyTheme.longBreakColor.opacity(0.35))
                     .frame(width: 180, height: 180)
@@ -137,14 +165,7 @@ struct DashboardView: View {
     private func quickAction(icon: String, label: String, color: Color, tab: Int) -> some View {
         Button { selectedTab = tab } label: {
             VStack(spacing: 8) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(color.opacity(0.14))
-                        .frame(width: 52, height: 52)
-                    Image(systemName: icon)
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(color)
-                }
+                IconChip(systemName: icon, tint: color, size: 52, corner: 14)
                 Text(label)
                     .font(StudyFont.tiny)
                     .foregroundStyle(StudyTheme.secondaryText)
@@ -153,12 +174,13 @@ struct DashboardView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, StudySpacing.medium)
             .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: StudyRadius.medium, style: .continuous)
                     .fill(StudyTheme.surface)
-                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .overlay(RoundedRectangle(cornerRadius: StudyRadius.medium, style: .continuous)
                         .stroke(StudyTheme.surfaceStroke, lineWidth: 1))
             )
         }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Recent Quizzes
@@ -168,14 +190,7 @@ struct DashboardView: View {
             VStack(spacing: StudySpacing.small) {
                 ForEach(store.recentQuizSessions.prefix(3)) { session in
                     HStack(spacing: StudySpacing.medium) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(session.gradeColor.opacity(0.14))
-                                .frame(width: 36, height: 36)
-                            Image(systemName: "checkmark.circle")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(session.gradeColor)
-                        }
+                        IconChip(systemName: "checkmark.circle", tint: session.gradeColor, size: 36, corner: 8)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(session.title)
                                 .font(StudyFont.subtitle)
@@ -212,14 +227,7 @@ struct DashboardView: View {
             VStack(spacing: StudySpacing.small) {
                 ForEach(store.recentDecks.prefix(3)) { deck in
                     HStack(spacing: StudySpacing.medium) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(StudyTheme.longBreakColor.opacity(0.14))
-                                .frame(width: 36, height: 36)
-                            Image(systemName: "rectangle.on.rectangle")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(StudyTheme.longBreakColor)
-                        }
+                        IconChip(systemName: "rectangle.on.rectangle", tint: StudyTheme.longBreakColor, size: 36, corner: 8)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(deck.title)
                                 .font(StudyFont.subtitle)
@@ -254,9 +262,14 @@ struct DashboardView: View {
     private var gettingStartedCard: some View {
         StudyCard {
             VStack(spacing: StudySpacing.medium) {
-                Image(systemName: "graduationcap")
-                    .font(.system(size: 36))
-                    .foregroundStyle(StudyTheme.tertiaryText)
+                ZStack {
+                    Circle()
+                        .fill(StudyTheme.accentSoft)
+                        .frame(width: 64, height: 64)
+                    Image(systemName: "graduationcap")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundStyle(StudyTheme.accent)
+                }
                 Text("Welcome to AI Academic Mentor")
                     .font(StudyFont.cardTitle)
                     .foregroundStyle(StudyTheme.primaryText)

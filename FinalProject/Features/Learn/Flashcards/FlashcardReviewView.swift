@@ -3,6 +3,9 @@ import SwiftUI
 struct FlashcardReviewView: View {
     @EnvironmentObject var store: LearningStore
     @ObservedObject var vm: FlashcardsViewModel
+    @State private var dragOffset: CGFloat = 0
+    // BUG FIX: prevent asyncAfter from firing after dismiss
+    @State private var isDismissed = false
 
     var body: some View {
         ZStack {
@@ -41,7 +44,10 @@ struct FlashcardReviewView: View {
 
     private var reviewHeader: some View {
         HStack {
-            Button { vm.dismissReview() } label: {
+            Button {
+                isDismissed = true   // BUG FIX: cancel any pending asyncAfter
+                vm.dismissReview()
+            } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(StudyTheme.secondaryText)
@@ -126,7 +132,62 @@ struct FlashcardReviewView: View {
                 .opacity(vm.isFlipped ? 1 : 0)
             }
             .padding(.horizontal, StudySpacing.large)
+            .offset(x: vm.isFlipped ? dragOffset : 0)
+            .rotationEffect(.degrees(vm.isFlipped ? Double(dragOffset) / 20 : 0))
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        guard vm.isFlipped else { return }
+                        dragOffset = value.translation.width
+                    }
+                    .onEnded { value in
+                        guard vm.isFlipped else { return }
+                        let threshold: CGFloat = 80
+                        if value.translation.width > threshold {
+                            let feedback = UINotificationFeedbackGenerator()
+                            feedback.notificationOccurred(.success)
+                            withAnimation(.spring(response: 0.3)) { dragOffset = 400 }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                guard !isDismissed else { return }   // BUG FIX
+                                dragOffset = 0
+                                vm.markKnew(store: store)
+                            }
+                        } else if value.translation.width < -threshold {
+                            let feedback = UINotificationFeedbackGenerator()
+                            feedback.notificationOccurred(.warning)
+                            withAnimation(.spring(response: 0.3)) { dragOffset = -400 }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                guard !isDismissed else { return }   // BUG FIX
+                                dragOffset = 0
+                                vm.markDidNotKnow(store: store)
+                            }
+                        } else {
+                            withAnimation(.spring(response: 0.3)) { dragOffset = 0 }
+                        }
+                    }
+            )
             .onTapGesture { vm.flipCard() }
+            // Swipe hint overlay
+            .overlay {
+                if vm.isFlipped && abs(dragOffset) > 30 {
+                    HStack {
+                        if dragOffset < -30 {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 48))
+                                .foregroundStyle(StudyTheme.danger)
+                                .opacity(Double(min(1, abs(dragOffset) / 100)))
+                        }
+                        Spacer()
+                        if dragOffset > 30 {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 48))
+                                .foregroundStyle(StudyTheme.success)
+                                .opacity(Double(min(1, dragOffset / 100)))
+                        }
+                    }
+                    .padding(.horizontal, StudySpacing.large + 16)
+                }
+            }
         }
     }
 
@@ -174,10 +235,12 @@ struct FlashcardReviewView: View {
     private var bottomControls: some View {
         VStack(spacing: StudySpacing.medium) {
             if !vm.isFlipped {
-                Text("Tap card to reveal answer")
-                    .font(StudyFont.caption)
-                    .foregroundStyle(StudyTheme.tertiaryText)
-                    .transition(.opacity)
+                VStack(spacing: 4) {
+                    Text("Tap card to reveal answer")
+                        .font(StudyFont.caption)
+                        .foregroundStyle(StudyTheme.tertiaryText)
+                }
+                .transition(.opacity)
             } else {
                 HStack(spacing: StudySpacing.medium) {
                     // Didn't know
@@ -242,7 +305,7 @@ struct FlashcardReviewView: View {
 
     private var completionHeader: some View {
         HStack {
-            Button { vm.dismissReview() } label: {
+            Button { isDismissed = true; vm.dismissReview() } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(StudyTheme.secondaryText)

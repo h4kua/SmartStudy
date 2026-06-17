@@ -3,6 +3,7 @@ import SwiftUI
 struct MainTabView: View {
     @EnvironmentObject var store: LearningStore
     @State private var selectedTab = 0
+    @State private var previousTab = 0
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -40,5 +41,12 @@ struct MainTabView: View {
         }
         .tint(StudyTheme.accent)
         .preferredColorScheme(.dark)
+        .onChange(of: selectedTab) { newTab in
+            if newTab != previousTab {
+                let impact = UIImpactFeedbackGenerator(style: .light)
+                impact.impactOccurred()
+                previousTab = newTab
+            }
+        }
     }
 }

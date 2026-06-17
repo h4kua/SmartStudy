@@ -49,13 +49,25 @@ final class SpeechService: ObservableObject {
         guard let request else { return }
         request.shouldReportPartialResults = true
 
+        // Install tap BEFORE starting engine so we can clean up on failure
         let node = audioEngine.inputNode
         node.installTap(onBus: 0, bufferSize: 1024, format: node.outputFormat(forBus: 0)) { [weak self] buffer, _ in
             self?.request?.append(buffer)
         }
 
         audioEngine.prepare()
-        try? audioEngine.start()
+
+        do {
+            try audioEngine.start()
+        } catch {
+            // BUG FIX: remove tap immediately if engine fails — prevents crash on next start()
+            node.removeTap(onBus: 0)
+            request.endAudio()
+            self.request = nil
+            print("SpeechService: audioEngine failed to start — \(error.localizedDescription)")
+            return
+        }
+
         isListening = true
 
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in

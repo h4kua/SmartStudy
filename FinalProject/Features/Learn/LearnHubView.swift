@@ -5,6 +5,9 @@ struct LearnHubView: View {
     @State private var selectedTab = 0
     @Namespace private var tabNS
 
+    private let tabs = ["Quizzes", "Flashcards", "Timer"]
+    private let subtitles = ["Test your knowledge", "Active recall practice", "Focus & take breaks"]
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -13,16 +16,24 @@ struct LearnHubView: View {
                     .padding(.horizontal, StudySpacing.large)
                     .padding(.bottom, StudySpacing.medium)
 
-                if selectedTab == 0 {
-                    QuizView()
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .leading),
-                            removal:   .move(edge: .trailing)))
-                } else {
-                    FlashcardsView()
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing),
-                            removal:   .move(edge: .leading)))
+                Group {
+                    switch selectedTab {
+                    case 0:
+                        QuizView()
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .leading),
+                                removal:   .move(edge: .trailing)))
+                    case 1:
+                        FlashcardsView()
+                            .transition(.asymmetric(
+                                insertion: selectedTab > 1 ? .move(edge: .leading) : .move(edge: .trailing),
+                                removal:   selectedTab > 1 ? .move(edge: .trailing) : .move(edge: .leading)))
+                    default:
+                        TimerView()
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing),
+                                removal:   .move(edge: .leading)))
+                    }
                 }
             }
             .background(StudyTheme.backgroundGradient.ignoresSafeArea())
@@ -39,9 +50,11 @@ struct LearnHubView: View {
                 Text("Learn")
                     .font(.system(size: 32, weight: .black, design: .rounded))
                     .foregroundStyle(StudyTheme.primaryText)
-                Text(selectedTab == 0 ? "Test your knowledge" : "Active recall practice")
+                Text(subtitles[min(selectedTab, subtitles.count - 1)])
                     .font(StudyFont.caption)
                     .foregroundStyle(StudyTheme.secondaryText)
+                    .contentTransition(.interpolate)
+                    .animation(.easeInOut(duration: 0.2), value: selectedTab)
             }
             Spacer()
         }
@@ -50,36 +63,43 @@ struct LearnHubView: View {
         .padding(.bottom, StudySpacing.medium)
     }
 
-    // MARK: - Segment picker
+    // MARK: - Segment Picker
 
     private var segmentedPicker: some View {
         HStack(spacing: 2) {
-            ForEach(["Quizzes", "Flashcards"].indices, id: \.self) { i in
+            ForEach(tabs.indices, id: \.self) { i in
                 Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         selectedTab = i
                     }
                 } label: {
-                    Text(["Quizzes", "Flashcards"][i])
-                        .font(StudyFont.subtitle)
-                        .foregroundStyle(selectedTab == i ? .white : StudyTheme.secondaryText)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(
-                            Group {
-                                if selectedTab == i {
-                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .fill(StudyTheme.accentGradient)
-                                        .shadow(color: StudyTheme.accentGlow.opacity(0.5), radius: 8, y: 3)
-                                        .matchedGeometryEffect(id: "learnTab", in: tabNS)
-                                }
+                    HStack(spacing: 5) {
+                        if i == 2 {
+                            Image(systemName: "timer")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        Text(tabs[i])
+                            .font(StudyFont.tiny)
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundStyle(selectedTab == i ? .white : StudyTheme.secondaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(
+                        Group {
+                            if selectedTab == i {
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(i == 2 ? AnyShapeStyle(StudyTheme.shortBreakColor) : AnyShapeStyle(StudyTheme.accentGradient))
+                                    .shadow(color: (i == 2 ? StudyTheme.shortBreakColor : StudyTheme.accent).opacity(0.4), radius: 6, y: 2)
+                                    .matchedGeometryEffect(id: "learnTab", in: tabNS)
                             }
-                        )
+                        }
+                    )
                 }
             }
         }
         .padding(4)
         .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(StudyTheme.surface2))
     }
-
 }
