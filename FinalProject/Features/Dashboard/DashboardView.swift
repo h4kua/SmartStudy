@@ -3,7 +3,8 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject var store: LearningStore
     @Binding var selectedTab: Int
-    @State private var showSettings = false
+    @State private var showSettings    = false
+    @State private var showStudyCoach  = false
     @State private var appeared = false
 
     var body: some View {
@@ -27,6 +28,9 @@ struct DashboardView: View {
                     if store.recentQuizSessions.isEmpty && store.recentDecks.isEmpty {
                         gettingStartedCard
                     }
+                    aiCoachCard
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 16)
                 }
                 .padding(.horizontal, StudySpacing.large)
                 .padding(.bottom, StudySpacing.xxLarge)
@@ -43,6 +47,10 @@ struct DashboardView: View {
             SettingsView()
                 .environmentObject(store)
                 .environmentObject(FirebaseAuthService.shared)
+        }
+        .sheet(isPresented: $showStudyCoach) {
+            StudyCoachView()
+                .environmentObject(store)
         }
     }
 
@@ -255,6 +263,94 @@ struct DashboardView: View {
                 }
             }
         }
+    }
+
+    // MARK: - AI Coach Card
+
+    private var aiCoachCard: some View {
+        Button { showStudyCoach = true } label: {
+            VStack(alignment: .leading, spacing: StudySpacing.medium) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(.white.opacity(0.15))
+                            .frame(width: 42, height: 42)
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("AI Study Coach")
+                            .font(StudyFont.subtitle)
+                            .foregroundStyle(.white)
+                        Text("Powered by CrewAI × Groq")
+                            .font(StudyFont.tiny)
+                            .foregroundStyle(.white.opacity(0.65))
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.60))
+                }
+
+                Text("Get a personalised 7-day study plan or performance review from a team of 3 AI agents working together.")
+                    .font(StudyFont.caption)
+                    .foregroundStyle(.white.opacity(0.75))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
+
+                HStack(spacing: 6) {
+                    agentTag("🔍 Analyst")
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.50))
+                    agentTag("🎯 Coach")
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.50))
+                    agentTag("📅 Planner")
+                }
+            }
+            .padding(StudySpacing.large)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: StudyRadius.xLarge, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.30, green: 0.15, blue: 0.70),
+                                    Color(red: 0.10, green: 0.25, blue: 0.85),
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                    Circle()
+                        .fill(.white.opacity(0.08))
+                        .frame(width: 160, height: 160)
+                        .blur(radius: 30)
+                        .offset(x: 80, y: -40)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: StudyRadius.xLarge, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: StudyRadius.xLarge, style: .continuous)
+                        .stroke(.white.opacity(0.12), lineWidth: 1)
+                )
+            )
+            .shadow(color: Color(red: 0.30, green: 0.15, blue: 0.70).opacity(0.5), radius: 18, y: 8)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func agentTag(_ text: String) -> some View {
+        Text(text)
+            .font(StudyFont.tiny)
+            .foregroundStyle(.white.opacity(0.90))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(.white.opacity(0.15))
+            .clipShape(Capsule())
     }
 
     // MARK: - Getting started

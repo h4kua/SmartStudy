@@ -17,6 +17,8 @@
 		TIMRVW01TIMRVW001BLDF /* TimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TIMRVW01TIMRVW001STDY /* TimerView.swift */; };
 		QZRVW001QZRVW001BLDF /* QuizReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = QZRVW001QZRVW001STDY /* QuizReviewView.swift */; };
 		SUBJMG01SUBJMG01BLDF /* SubjectManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SUBJMG01SUBJMG01STDY /* SubjectManagementView.swift */; };
+		CREWSVC01CREWSVC01BLDF /* CrewAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWSVC01CREWSVC01STDY /* CrewAIService.swift */; };
+		CREWVW001CREWVW001BLDF /* StudyCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWVW001CREWVW001STDY /* StudyCoachView.swift */; };
 		A6A4F4CA2FDB9EE10083B8D2 /* FinalProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4C92FDB9EE10083B8D2 /* FinalProjectApp.swift */; };
 		A6A4F4CE2FDB9EE70083B8D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6A4F4CD2FDB9EE70083B8D2 /* Assets.xcassets */; };
 		A6A4F4D22FDB9EE70083B8D2 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6A4F4D12FDB9EE70083B8D2 /* Preview Assets.xcassets */; };
@@ -105,6 +107,8 @@
 		FBAUTH01FBAUTH01FBSTDY /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		FBGSVC001FBGSVC001FBSTDY /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		NOTFSVC01NOTFSVC01STDY /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		CREWSVC01CREWSVC01STDY /* CrewAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrewAIService.swift; sourceTree = "<group>"; };
+		CREWVW001CREWVW001STDY /* StudyCoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyCoachView.swift; sourceTree = "<group>"; };
 		TIMRVM01TIMRVM001STDY /* TimerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerViewModel.swift; sourceTree = "<group>"; };
 		TIMRVW01TIMRVW001STDY /* TimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerView.swift; sourceTree = "<group>"; };
 		QZRVW001QZRVW001STDY /* QuizReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizReviewView.swift; sourceTree = "<group>"; };
@@ -250,6 +254,7 @@
 				GRP_TIMR_0000000000014 /* Timer */,
 				GRP_ANLT_0000000000008 /* Analytics */,
 				GRP_SETT_0000000000009 /* Settings */,
+				GRP_CREW_0000000000016 /* StudyCoach */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -311,8 +316,17 @@
 				SPCHSVC001SPCHSVC001STDY /* SpeechService.swift */,
 				FBSVC001FBSVC001FBSTDY /* FirebaseAuthService.swift */,
 				NOTFSVC01NOTFSVC01STDY /* NotificationService.swift */,
+				CREWSVC01CREWSVC01STDY /* CrewAIService.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		GRP_CREW_0000000000016 /* StudyCoach */ = {
+			isa = PBXGroup;
+			children = (
+				CREWVW001CREWVW001STDY /* StudyCoachView.swift */,
+			);
+			path = StudyCoach;
 			sourceTree = "<group>";
 		};
 		GRP_TIMR_0000000000014 /* Timer */ = {
@@ -518,6 +532,8 @@
 				TIMRVW01TIMRVW001BLDF /* TimerView.swift in Sources */,
 				QZRVW001QZRVW001BLDF /* QuizReviewView.swift in Sources */,
 				SUBJMG01SUBJMG01BLDF /* SubjectManagementView.swift in Sources */,
+				CREWSVC01CREWSVC01BLDF /* CrewAIService.swift in Sources */,
+				CREWVW001CREWVW001BLDF /* StudyCoachView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

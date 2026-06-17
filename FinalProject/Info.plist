@@ -15,6 +15,19 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<false/>
+			</dict>
+		</dict>
+	</dict>
 	<key>NSHealthShareUsageDescription</key>
 	<string>AI Academic Mentor reads your daily step count and sleep data to display in your learning progress dashboard.</string>
 	<key>NSMicrophoneUsageDescription</key>
