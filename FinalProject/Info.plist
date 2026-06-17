@@ -30,6 +30,8 @@
 	</dict>
 	<key>NSHealthShareUsageDescription</key>
 	<string>AI Academic Mentor reads your daily step count and sleep data to display in your learning progress dashboard.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>AI Academic Mentor uses the front camera to monitor your focus level during study sessions — detecting eye openness and head pose to calculate a real-time focus score.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>AI Academic Mentor uses the microphone so you can speak your questions to the AI Tutor.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

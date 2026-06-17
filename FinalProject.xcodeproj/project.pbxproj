@@ -19,6 +19,10 @@
 		SUBJMG01SUBJMG01BLDF /* SubjectManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SUBJMG01SUBJMG01STDY /* SubjectManagementView.swift */; };
 		CREWSVC01CREWSVC01BLDF /* CrewAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWSVC01CREWSVC01STDY /* CrewAIService.swift */; };
 		CREWVW001CREWVW001BLDF /* StudyCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWVW001CREWVW001STDY /* StudyCoachView.swift */; };
+		FCAMSVC01FCAMSVC01BLDF /* FocusCameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */; };
+		FCANL001FCANL001BLDF /* FocusAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCANL001FCANL001STDY /* FocusAnalyzer.swift */; };
+		FCAVML01FCAVML01BLDF /* FocusSessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */; };
+		FCAVW001FCAVW001BLDF /* FocusSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAVW001FCAVW001STDY /* FocusSessionView.swift */; };
 		A6A4F4CA2FDB9EE10083B8D2 /* FinalProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4C92FDB9EE10083B8D2 /* FinalProjectApp.swift */; };
 		A6A4F4CE2FDB9EE70083B8D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6A4F4CD2FDB9EE70083B8D2 /* Assets.xcassets */; };
 		A6A4F4D22FDB9EE70083B8D2 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6A4F4D12FDB9EE70083B8D2 /* Preview Assets.xcassets */; };
@@ -109,6 +113,10 @@
 		NOTFSVC01NOTFSVC01STDY /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		CREWSVC01CREWSVC01STDY /* CrewAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrewAIService.swift; sourceTree = "<group>"; };
 		CREWVW001CREWVW001STDY /* StudyCoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyCoachView.swift; sourceTree = "<group>"; };
+		FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusCameraService.swift; sourceTree = "<group>"; };
+		FCANL001FCANL001STDY /* FocusAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusAnalyzer.swift; sourceTree = "<group>"; };
+		FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSessionViewModel.swift; sourceTree = "<group>"; };
+		FCAVW001FCAVW001STDY /* FocusSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSessionView.swift; sourceTree = "<group>"; };
 		TIMRVM01TIMRVM001STDY /* TimerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerViewModel.swift; sourceTree = "<group>"; };
 		TIMRVW01TIMRVW001STDY /* TimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerView.swift; sourceTree = "<group>"; };
 		QZRVW001QZRVW001STDY /* QuizReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizReviewView.swift; sourceTree = "<group>"; };
@@ -255,6 +263,7 @@
 				GRP_ANLT_0000000000008 /* Analytics */,
 				GRP_SETT_0000000000009 /* Settings */,
 				GRP_CREW_0000000000016 /* StudyCoach */,
+				GRP_FCAM_0000000000017 /* FocusCamera */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -327,6 +336,17 @@
 				CREWVW001CREWVW001STDY /* StudyCoachView.swift */,
 			);
 			path = StudyCoach;
+			sourceTree = "<group>";
+		};
+		GRP_FCAM_0000000000017 /* FocusCamera */ = {
+			isa = PBXGroup;
+			children = (
+				FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */,
+				FCANL001FCANL001STDY /* FocusAnalyzer.swift */,
+				FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */,
+				FCAVW001FCAVW001STDY /* FocusSessionView.swift */,
+			);
+			path = FocusCamera;
 			sourceTree = "<group>";
 		};
 		GRP_TIMR_0000000000014 /* Timer */ = {
@@ -534,6 +554,10 @@
 				SUBJMG01SUBJMG01BLDF /* SubjectManagementView.swift in Sources */,
 				CREWSVC01CREWSVC01BLDF /* CrewAIService.swift in Sources */,
 				CREWVW001CREWVW001BLDF /* StudyCoachView.swift in Sources */,
+				FCAMSVC01FCAMSVC01BLDF /* FocusCameraService.swift in Sources */,
+				FCANL001FCANL001BLDF /* FocusAnalyzer.swift in Sources */,
+				FCAVML01FCAVML01BLDF /* FocusSessionViewModel.swift in Sources */,
+				FCAVW001FCAVW001BLDF /* FocusSessionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
