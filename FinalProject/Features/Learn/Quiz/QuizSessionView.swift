@@ -120,9 +120,23 @@ struct QuizSessionView: View {
             }
             Spacer()
 
+            // Voice feedback toggle
+            Button { vm.toggleVoiceFeedback() } label: {
+                Image(systemName: vm.voiceFeedbackEnabled
+                      ? "speaker.wave.2.fill"
+                      : "speaker.slash.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(vm.voiceFeedbackEnabled
+                                     ? StudyTheme.accent
+                                     : StudyTheme.tertiaryText)
+                    .frame(width: 32, height: 32)
+                    .background(StudyTheme.surface2)
+                    .clipShape(Circle())
+            }
+
             // Focus state dot indicator
             focusDot
-                .frame(width: 36, height: 36)
+                .frame(width: 32, height: 32)
         }
         .padding(.horizontal, StudySpacing.large)
         .padding(.vertical, StudySpacing.medium)

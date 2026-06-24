@@ -4,9 +4,7 @@ import SwiftUI
 
 struct TimerView: View {
     @StateObject private var vm = TimerViewModel()
-    @EnvironmentObject var store: LearningStore
-    @State private var appeared       = false
-    @State private var showFocusMode  = false
+    @State private var appeared = false
 
     var body: some View {
         ZStack {
@@ -40,19 +38,11 @@ struct TimerView: View {
 
                 // Controls
                 controls
-                    .padding(.bottom, StudySpacing.medium)
-
-                // Focus Mode button
-                focusModeButton
                     .padding(.bottom, StudySpacing.xxLarge)
             }
             .padding(.horizontal, StudySpacing.large)
         }
         .onAppear { appeared = true }
-        .fullScreenCover(isPresented: $showFocusMode) {
-            FocusSessionView()
-                .environmentObject(store)
-        }
     }
 
     // MARK: - Phase Selector
@@ -172,25 +162,6 @@ struct TimerView: View {
         }
     }
 
-    // MARK: - Focus Mode Button
-
-    private var focusModeButton: some View {
-        Button { showFocusMode = true } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "camera.fill")
-                    .font(.system(size: 13, weight: .semibold))
-                Text("Focus Mode")
-                    .font(StudyFont.caption)
-                    .fontWeight(.semibold)
-            }
-            .foregroundStyle(StudyTheme.accent)
-            .padding(.horizontal, StudySpacing.large)
-            .padding(.vertical, 10)
-            .background(StudyTheme.accent.opacity(0.12))
-            .clipShape(Capsule())
-            .overlay(Capsule().stroke(StudyTheme.accent.opacity(0.3), lineWidth: 1))
-        }
-    }
 }
 
 // MARK: - Circle Control Button

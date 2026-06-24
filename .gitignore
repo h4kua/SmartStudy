@@ -1,0 +1,27 @@
+# Xcode
+DerivedData/
+*.xcuserdata/
+xcuserdata/
+*.xcworkspace/xcuserdata/
+build/
+*.moved-aside
+*.pbxuser
+
+# Python / CrewAI backend
+crew_backend/.env
+crew_backend/.venv/
+crew_backend/__pycache__/
+crew_backend/*.pyc
+crew_backend/*.pyo
+__pycache__/
+*.pyc
+
+# Secrets / credentials
+GoogleService-Info.plist
+*.p12
+*.cer
+*.mobileprovision
+
+# OS
+.DS_Store
+Thumbs.db

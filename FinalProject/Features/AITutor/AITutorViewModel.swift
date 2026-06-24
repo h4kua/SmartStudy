@@ -64,26 +64,73 @@ final class AITutorViewModel: ObservableObject {
 
         do {
             let scannedText = try await NoteScannerService.recognizeText(from: image)
-            // Build a structured math-solving prompt
-            let prompt = """
-            Solve the following step-by-step, showing all working clearly:
 
-            \(scannedText)
+            // Show user what was extracted so they can verify
+            let preview = scannedText.count > 250
+                ? String(scannedText.prefix(250)) + "…"
+                : scannedText
+            messages.append(ChatMessage(
+                role: "user",
+                content: "Solve this (scanned from photo):\n\(preview)"
+            ))
 
-            Format your answer with numbered steps.
-            """
-            await sendMessage(prompt)
+            // Send an OCR-aware solving prompt directly to Groq
+            await sendEquationToGroq(scannedText)
         } catch {
             let errMsg = (error as? NoteScannerService.ScanError)?.errorDescription
                          ?? error.localizedDescription
-            // Add as assistant message so it appears in chat
             messages.append(ChatMessage(
                 role: "assistant",
-                content: "Could not read the equation from the photo: \(errMsg) Try better lighting or a clearer angle."
+                content: "Could not read the photo clearly: \(errMsg)\n\nTips: use good lighting, hold the camera steady, and make sure the equation fills most of the frame."
             ))
         }
 
         isSolvingEquation = false
+    }
+
+    /// Sends the OCR text to Groq with context about potential OCR errors.
+    /// Does NOT append a user bubble — the caller already did that.
+    private func sendEquationToGroq(_ scannedText: String) async {
+        isLoading    = true
+        errorMessage = nil
+        canRetry     = false
+
+        // OCR-aware prompt: tell Groq the input may be noisy
+        let prompt = """
+        The following text was extracted via OCR from a handwritten or printed math problem. \
+        OCR makes common math mistakes: superscripts become plain numbers (x² → x2), \
+        fractions may be split (1/2 → 1 2), × becomes x or *, integral signs may be missing, etc.
+
+        Please:
+        1. Identify and correct any obvious OCR errors in the expression.
+        2. State the corrected problem clearly.
+        3. Solve it step-by-step with numbered steps, showing all working.
+
+        OCR-extracted text:
+        \(scannedText)
+        """
+
+        let history = messages.suffix(8).map { ["role": $0.role, "content": $0.content] }
+
+        do {
+            let reply = try await GroqService.shared.chat(
+                system:      systemPrompt,
+                history:     Array(history),
+                userMessage: prompt,
+                maxTokens:   700
+            )
+            messages.append(ChatMessage(role: "assistant", content: reply))
+            canRetry       = false
+            lastFailedText = nil
+        } catch {
+            let msg = (error as? GroqError)?.errorDescription ?? error.localizedDescription
+            errorMessage = msg
+            canRetry     = true
+            lastFailedText = prompt
+            messages.append(ChatMessage(role: "assistant",
+                content: "Could not reach the AI right now. Check your connection and tap Retry."))
+        }
+        isLoading = false
     }
 
     func clearChat() {
