@@ -106,6 +106,13 @@ final class FocusVoiceCoach {
     }
 
     private func speak(_ text: String) {
+        // FIX: Ensure audio session is configured for speech output.
+        // Without this, TTS is silent if the session was never set to .playback
+        // (e.g. on fresh launch or after SpeechService left it in .record mode).
+        let audioSession = AVAudioSession.sharedInstance()
+        try? audioSession.setCategory(.playback, mode: .default, options: [.duckOthers])
+        try? audioSession.setActive(true)
+
         synthesizer.stopSpeaking(at: .word)
         let utterance       = AVSpeechUtterance(string: text)
         utterance.voice     = AVSpeechSynthesisVoice(language: "en-US")

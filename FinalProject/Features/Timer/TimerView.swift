@@ -4,6 +4,7 @@ import SwiftUI
 
 struct TimerView: View {
     @StateObject private var vm = TimerViewModel()
+    @EnvironmentObject var store: LearningStore
     @State private var appeared       = false
     @State private var showFocusMode  = false
 
@@ -50,6 +51,7 @@ struct TimerView: View {
         .onAppear { appeared = true }
         .fullScreenCover(isPresented: $showFocusMode) {
             FocusSessionView()
+                .environmentObject(store)
         }
     }
 

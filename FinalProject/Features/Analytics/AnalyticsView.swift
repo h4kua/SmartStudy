@@ -74,10 +74,12 @@ struct AnalyticsView: View {
                             value: "\(store.totalFlashcardsReviewed)",
                             label: "Cards Reviewed",
                             color: StudyTheme.longBreakColor)
-                summaryTile(icon: "clock.fill",
-                            value: store.totalStudyMinutes.minutesToHoursString,
-                            label: "Study Time",
-                            color: StudyTheme.shortBreakColor)
+                summaryTile(icon: "brain.head.profile",
+                            value: store.totalFocusMinutes > 0
+                                ? store.totalFocusMinutes.minutesToHoursString
+                                : "—",
+                            label: "Focus Time",
+                            color: StudyTheme.accent)
             }
         }
     }

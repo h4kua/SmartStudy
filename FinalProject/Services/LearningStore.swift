@@ -18,16 +18,18 @@ final class LearningStore: ObservableObject {
     @Published var quizSessions:      [QuizSession]      = []
     @Published var flashcardDecks:    [FlashcardDeck]    = []
     @Published var analyzedDocuments: [AnalyzedDocument] = []
+    @Published var totalFocusMinutes: Int                = 0
 
     // =========================================================
     // MARK: - UserDefaults keys
     // =========================================================
 
     private enum Key {
-        static let subjects   = "mentor.subjects"
-        static let quizzes    = "mentor.quizSessions"
-        static let decks      = "mentor.flashcardDecks"
-        static let documents  = "mentor.analyzedDocuments"
+        static let subjects      = "mentor.subjects"
+        static let quizzes       = "mentor.quizSessions"
+        static let decks         = "mentor.flashcardDecks"
+        static let documents     = "mentor.analyzedDocuments"
+        static let focusMinutes  = "mentor.totalFocusMinutes"
     }
 
     // =========================================================
@@ -40,6 +42,17 @@ final class LearningStore: ObservableObject {
             subjects = Subject.presets
             saveSubjects()
         }
+        totalFocusMinutes = UserDefaults.standard.integer(forKey: Key.focusMinutes)
+    }
+
+    // MARK: - Focus Session Logging
+
+    /// Call when a focus session ends to accumulate total focus time.
+    func logFocusSession(durationSeconds: Int) {
+        let minutes = durationSeconds / 60
+        guard minutes > 0 else { return }
+        totalFocusMinutes += minutes
+        UserDefaults.standard.set(totalFocusMinutes, forKey: Key.focusMinutes)
     }
 
     // =========================================================
@@ -168,11 +181,11 @@ final class LearningStore: ObservableObject {
 
     // ---------- Study time estimate ----------
 
-    /// Rough estimate: 5 min per completed quiz + 10 min per reviewed deck.
+    /// Rough estimate: 5 min per completed quiz + 10 min per reviewed deck + actual focus session minutes.
     var totalStudyMinutes: Int {
-        let quizMinutes = quizSessions.filter(\.isCompleted).count * 5
-        let deckMinutes = flashcardDecks.filter { $0.lastReviewedDate != nil }.count * 10
-        return quizMinutes + deckMinutes
+        let quizMinutes  = quizSessions.filter(\.isCompleted).count * 5
+        let deckMinutes  = flashcardDecks.filter { $0.lastReviewedDate != nil }.count * 10
+        return quizMinutes + deckMinutes + totalFocusMinutes
     }
 
     // ---------- Streak ----------

@@ -41,7 +41,7 @@ final class FocusSessionViewModel: ObservableObject {
     @Published var isActive:         Bool              = false
     @Published var showAwayWarning:  Bool              = false
     @Published var permission:       CameraPermission  = .unknown
-    @Published var voiceEnabled:     Bool              = true  // user can toggle
+    @Published var voiceEnabled:     Bool              = UserDefaults.standard.object(forKey: "focus.voiceDefault") as? Bool ?? true
     @Published var isSpeaking:       Bool              = false
     @Published var showSummary:      Bool              = false
     @Published var sessionSummary:   String            = ""

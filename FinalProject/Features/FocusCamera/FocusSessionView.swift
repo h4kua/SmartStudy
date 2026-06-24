@@ -26,32 +26,189 @@ private struct CameraPreviewView: UIViewRepresentable {
     func updateUIView(_ uiView: _View, context: Context) {}
 }
 
+// MARK: - AI Sensor Visualization (Privacy Mode — no camera preview)
+
+/// Abstract pulsing visualization shown when camera preview is hidden.
+/// Gives the feeling of active AI analysis without showing the camera feed.
+private struct AISensorView: View {
+    let focusScore:  Double
+    let focusState:  AttentionState
+    let isActive:    Bool
+
+    @State private var pulse1: Bool = false
+    @State private var pulse2: Bool = false
+    @State private var scanAngle: Double = 0
+
+    var body: some View {
+        ZStack {
+            // Deep dark background
+            Color.black.ignoresSafeArea()
+
+            // Ambient color glow from current state
+            RadialGradient(
+                colors: [focusState.color.opacity(0.18), Color.black],
+                center: .center,
+                startRadius: 60,
+                endRadius: 280
+            )
+            .ignoresSafeArea()
+            .animation(.easeInOut(duration: 0.8), value: focusState.rawValue)
+
+            if isActive {
+                // Outer pulse ring 1
+                Circle()
+                    .stroke(focusState.color.opacity(pulse1 ? 0 : 0.25), lineWidth: 1.5)
+                    .frame(width: 280, height: 280)
+                    .scaleEffect(pulse1 ? 1.3 : 1.0)
+                    .animation(.easeOut(duration: 2.0).repeatForever(autoreverses: false), value: pulse1)
+
+                // Outer pulse ring 2 (offset timing)
+                Circle()
+                    .stroke(focusState.color.opacity(pulse2 ? 0 : 0.18), lineWidth: 1)
+                    .frame(width: 240, height: 240)
+                    .scaleEffect(pulse2 ? 1.4 : 0.9)
+                    .animation(.easeOut(duration: 2.2).repeatForever(autoreverses: false).delay(0.6), value: pulse2)
+
+                // Middle static ring (track)
+                Circle()
+                    .stroke(Color.white.opacity(0.06), lineWidth: 2)
+                    .frame(width: 200, height: 200)
+
+                // Rotating scan arc
+                Circle()
+                    .trim(from: 0, to: 0.18)
+                    .stroke(
+                        AngularGradient(
+                            colors: [focusState.color.opacity(0), focusState.color.opacity(0.9)],
+                            center: .center
+                        ),
+                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                    )
+                    .frame(width: 200, height: 200)
+                    .rotationEffect(.degrees(scanAngle))
+                    .animation(.linear(duration: 3).repeatForever(autoreverses: false), value: scanAngle)
+
+                // Inner hexagonal "brain chip" dots
+                ZStack {
+                    ForEach(0..<8, id: \.self) { i in
+                        let angle = Double(i) * 45.0
+                        Circle()
+                            .fill(focusState.color.opacity(0.55))
+                            .frame(width: 5, height: 5)
+                            .offset(
+                                x: cos(angle * .pi / 180) * 72,
+                                y: sin(angle * .pi / 180) * 72
+                            )
+                    }
+                }
+
+                // Diagonal crosshair lines (very faint)
+                Path { path in
+                    path.move(to: CGPoint(x: 0, y: -80))
+                    path.addLine(to: CGPoint(x: 0, y: 80))
+                }
+                .stroke(Color.white.opacity(0.07), lineWidth: 1)
+                .frame(width: 160, height: 160)
+
+                Path { path in
+                    path.move(to: CGPoint(x: -80, y: 0))
+                    path.addLine(to: CGPoint(x: 80, y: 0))
+                }
+                .stroke(Color.white.opacity(0.07), lineWidth: 1)
+                .frame(width: 160, height: 160)
+
+                // Center core
+                ZStack {
+                    Circle()
+                        .fill(focusState.color.opacity(0.12))
+                        .frame(width: 90, height: 90)
+                    Circle()
+                        .fill(focusState.color.opacity(0.20))
+                        .frame(width: 60, height: 60)
+                    Circle()
+                        .fill(focusState.color.opacity(0.35))
+                        .frame(width: 36, height: 36)
+
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(focusState.color)
+                }
+                .animation(.easeInOut(duration: 0.6), value: focusState.rawValue)
+
+                // "AI ANALYZING" label
+                VStack(spacing: 4) {
+                    Spacer().frame(height: 170)
+                    HStack(spacing: 5) {
+                        Circle()
+                            .fill(focusState.color)
+                            .frame(width: 5, height: 5)
+                            .opacity(pulse1 ? 1 : 0.3)
+                            .animation(.easeInOut(duration: 0.8).repeatForever(), value: pulse1)
+                        Text("AI ANALYZING")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .tracking(2)
+                            .foregroundStyle(focusState.color.opacity(0.7))
+                    }
+                }
+            } else {
+                // Inactive — just show idle state
+                ZStack {
+                    Circle()
+                        .stroke(Color.white.opacity(0.06), lineWidth: 2)
+                        .frame(width: 200, height: 200)
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 40, weight: .light))
+                        .foregroundStyle(Color.white.opacity(0.20))
+                }
+            }
+        }
+        .onAppear {
+            pulse1 = true
+            pulse2 = true
+            scanAngle = 360
+        }
+    }
+}
+
 // MARK: - FocusSessionView
 
 struct FocusSessionView: View {
     @StateObject private var vm = FocusSessionViewModel()
+    @EnvironmentObject var store: LearningStore
     @Environment(\.dismiss) private var dismiss
+
+    /// Persisted preference: hide camera preview and show AI visualization instead.
+    @AppStorage("focus.hideCameraPreview") private var hideCameraPreview: Bool = false
 
     var body: some View {
         ZStack {
-            // ── 1. Camera preview (full screen) ──────────────────
-            Color.black.ignoresSafeArea()
-            CameraPreviewView(session: vm.cameraService.session)
-                .ignoresSafeArea()
-                .opacity(vm.isActive ? 1 : 0.3)
+            if hideCameraPreview {
+                // ── AI Sensor Mode — no camera feed shown ──────────
+                AISensorView(
+                    focusScore: vm.focusScore,
+                    focusState: vm.focusState,
+                    isActive:   vm.isActive
+                )
+            } else {
+                // ── 1. Camera preview (full screen) ───────────────
+                Color.black.ignoresSafeArea()
+                CameraPreviewView(session: vm.cameraService.session)
+                    .ignoresSafeArea()
+                    .opacity(vm.isActive ? 1 : 0.3)
+            }
 
-            // ── 2. Dark gradient overlay ──────────────────────────
+            // ── Dark gradient overlay (both modes) ──────────────
             LinearGradient(
                 colors: [
-                    Color.black.opacity(0.55),
-                    Color.black.opacity(0.10),
-                    Color.black.opacity(0.65),
+                    Color.black.opacity(0.60),
+                    Color.black.opacity(0.05),
+                    Color.black.opacity(0.70),
                 ],
                 startPoint: .top, endPoint: .bottom
             )
             .ignoresSafeArea()
 
-            // ── 3. UI overlay ─────────────────────────────────────
+            // ── UI overlay ──────────────────────────────────────
             VStack(spacing: 0) {
                 topBar
                 Spacer()
@@ -69,18 +226,24 @@ struct FocusSessionView: View {
             }
             .padding(.horizontal, StudySpacing.large)
 
-            // ── 4. Away warning overlay ───────────────────────────
+            // ── Away warning overlay ─────────────────────────────
             if vm.showAwayWarning {
                 awayWarningOverlay
             }
 
-            // ── 5. Session summary overlay ───────────────────────
+            // ── Session summary overlay ──────────────────────────
             if vm.showSummary {
                 sessionSummaryOverlay
             }
         }
         .preferredColorScheme(.dark)
         .onDisappear { vm.stop() }
+        // Log focus time to store when session summary appears
+        .onChange(of: vm.showSummary) { showing in
+            if showing {
+                store.logFocusSession(durationSeconds: vm.stats.totalSeconds)
+            }
+        }
     }
 
     // MARK: - Top Bar
@@ -120,23 +283,41 @@ struct FocusSessionView: View {
 
             Spacer()
 
-            // Voice toggle + speaking indicator
-            Button { vm.toggleVoice() } label: {
-                ZStack {
-                    Circle()
-                        .fill(vm.voiceEnabled
-                              ? (vm.isSpeaking
-                                 ? StudyTheme.accent.opacity(0.50)
-                                 : Color.white.opacity(0.18))
-                              : Color.white.opacity(0.08))
-                        .frame(width: 36, height: 36)
-
-                    Image(systemName: vm.voiceEnabled
-                          ? (vm.isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2.fill")
-                          : "speaker.slash.fill")
+            HStack(spacing: 8) {
+                // Camera preview toggle
+                Button {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        hideCameraPreview.toggle()
+                    }
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                } label: {
+                    Image(systemName: hideCameraPreview ? "eye.slash.fill" : "eye.fill")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(vm.voiceEnabled ? .white : .white.opacity(0.40))
-                        .opacity(vm.isSpeaking ? 1.0 : 0.85)
+                        .foregroundStyle(hideCameraPreview ? .white.opacity(0.40) : .white.opacity(0.80))
+                        .frame(width: 36, height: 36)
+                        .background(hideCameraPreview
+                                    ? Color.white.opacity(0.08)
+                                    : Color.white.opacity(0.18))
+                        .clipShape(Circle())
+                }
+
+                // Voice toggle + speaking indicator
+                Button { vm.toggleVoice() } label: {
+                    ZStack {
+                        Circle()
+                            .fill(vm.voiceEnabled
+                                  ? (vm.isSpeaking
+                                     ? StudyTheme.accent.opacity(0.50)
+                                     : Color.white.opacity(0.18))
+                                  : Color.white.opacity(0.08))
+                            .frame(width: 36, height: 36)
+
+                        Image(systemName: vm.voiceEnabled
+                              ? (vm.isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2.fill")
+                              : "speaker.slash.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(vm.voiceEnabled ? .white : .white.opacity(0.40))
+                    }
                 }
             }
         }
@@ -151,26 +332,39 @@ struct FocusSessionView: View {
                 Circle()
                     .fill(.white.opacity(0.10))
                     .frame(width: 90, height: 90)
-                Image(systemName: "camera.fill")
+                Image(systemName: "brain.head.profile")
                     .font(.system(size: 38, weight: .semibold))
                     .foregroundStyle(.white)
             }
 
             VStack(spacing: 8) {
-                Text("Study Focus Monitor")
+                Text("AI Focus Monitor")
                     .font(.system(size: 22, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
-                Text("AI watches your face to measure focus,\ndetect drowsiness, and track attention.")
+                Text("Vision AI analyzes your attention, eye openness,\nand head pose to keep you focused.")
                     .font(StudyFont.caption)
                     .foregroundStyle(.white.opacity(0.70))
                     .multilineTextAlignment(.center)
             }
 
-            HStack(spacing: 20) {
-                featurePill(icon: "eye.fill",         text: "Eye Tracking")
-                featurePill(icon: "person.fill",      text: "Head Pose")
-                featurePill(icon: "chart.bar.fill",   text: "Focus Score")
+            HStack(spacing: 14) {
+                featurePill(icon: "eye.fill",          text: "Eye\nTracking")
+                featurePill(icon: "person.fill",       text: "Head\nPose")
+                featurePill(icon: "chart.bar.fill",    text: "Focus\nScore")
+                featurePill(icon: "speaker.wave.2.fill", text: "Voice\nCoach")
             }
+
+            // Privacy mode toggle right on start card
+            HStack(spacing: 8) {
+                Image(systemName: hideCameraPreview ? "eye.slash" : "video.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(StudyTheme.accent.opacity(0.8))
+                Toggle("Hide camera preview", isOn: $hideCameraPreview)
+                    .font(StudyFont.tiny)
+                    .foregroundStyle(.white.opacity(0.70))
+                    .tint(StudyTheme.accent)
+            }
+            .padding(.horizontal, StudySpacing.medium)
 
             Button {
                 Task { await vm.requestAndStart() }
@@ -198,6 +392,7 @@ struct FocusSessionView: View {
             Text(text)
                 .font(StudyFont.tiny)
                 .foregroundStyle(.white.opacity(0.75))
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
@@ -470,21 +665,45 @@ struct FocusSessionView: View {
 
     private var sessionSummaryOverlay: some View {
         ZStack {
-            Color.black.opacity(0.75).ignoresSafeArea()
+            Color.black.opacity(0.80).ignoresSafeArea()
 
             VStack(spacing: StudySpacing.large) {
                 ZStack {
                     Circle()
                         .fill(StudyTheme.success.opacity(0.15))
-                        .frame(width: 72, height: 72)
+                        .frame(width: 80, height: 80)
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 36))
+                        .font(.system(size: 40))
                         .foregroundStyle(StudyTheme.success)
                 }
 
                 Text("Session Complete")
-                    .font(.system(size: 24, weight: .black, design: .rounded))
+                    .font(.system(size: 26, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
+
+                // Stats row
+                HStack(spacing: 0) {
+                    summaryStatCell(
+                        value: "\(vm.stats.totalSeconds / 60)m",
+                        label: "Duration",
+                        color: StudyTheme.accent
+                    )
+                    Rectangle().fill(Color.white.opacity(0.12)).frame(width: 1, height: 44)
+                    summaryStatCell(
+                        value: "\(Int(vm.stats.avgScore))%",
+                        label: "Avg Score",
+                        color: StudyTheme.success
+                    )
+                    Rectangle().fill(Color.white.opacity(0.12)).frame(width: 1, height: 44)
+                    summaryStatCell(
+                        value: "\(Int(vm.stats.focusedPercent))%",
+                        label: "Focused",
+                        color: StudyTheme.warning
+                    )
+                }
+                .padding(.vertical, StudySpacing.medium)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                 Text(vm.sessionSummary)
                     .font(StudyFont.body)
@@ -499,7 +718,7 @@ struct FocusSessionView: View {
                     Text("Done")
                         .font(StudyFont.subtitle)
                         .foregroundStyle(.white)
-                        .frame(width: 180, height: 48)
+                        .frame(width: 200, height: 50)
                         .background(StudyTheme.accentGradient)
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
@@ -507,6 +726,19 @@ struct FocusSessionView: View {
             .padding(StudySpacing.xxLarge)
         }
         .transition(.opacity)
+        .animation(.easeInOut(duration: 0.4), value: vm.showSummary)
+    }
+
+    private func summaryStatCell(value: String, label: String, color: Color) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.system(size: 22, weight: .black, design: .rounded))
+                .foregroundStyle(color)
+            Text(label)
+                .font(StudyFont.tiny)
+                .foregroundStyle(.white.opacity(0.55))
+        }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Permission Denied Card

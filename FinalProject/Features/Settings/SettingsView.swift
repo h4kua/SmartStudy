@@ -4,9 +4,12 @@ struct SettingsView: View {
     @EnvironmentObject var store:  LearningStore
     @EnvironmentObject var auth:   FirebaseAuthService
     @ObservedObject private var notif = NotificationService.shared
+    @Environment(\.dismiss) private var dismiss
+
     @State private var showClearConfirm    = false
     @State private var showSignOutConfirm  = false
     @State private var showSubjectManager  = false
+
     // BUG FIX: initialise from stored values — not Date() — so DatePicker shows the saved time
     @State private var reminderTime: Date = {
         var comps = DateComponents()
@@ -15,6 +18,10 @@ struct SettingsView: View {
         return Calendar.current.date(from: comps) ?? Date()
     }()
 
+    // Focus Monitor preferences (persisted via AppStorage)
+    @AppStorage("focus.hideCameraPreview") private var hideCameraPreview: Bool = false
+    @AppStorage("focus.voiceDefault")      private var voiceDefault: Bool      = true
+
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
@@ -22,17 +29,29 @@ struct SettingsView: View {
                     appHeader
                     if auth.currentUser?.isAnonymous == true { guestBanner }
                     statsCard
+                    focusMonitorCard
                     notificationsCard
                     apiKeyCard
                     subjectsCard
                     dangerZone
+                    Spacer().frame(height: StudySpacing.xxLarge)
                 }
                 .padding(.horizontal, StudySpacing.large)
                 .padding(.bottom, StudySpacing.xxLarge)
             }
             .background(StudyTheme.backgroundGradient.ignoresSafeArea())
-            .toolbar(.hidden, for: .navigationBar)
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .foregroundStyle(StudyTheme.accent)
+                        .fontWeight(.semibold)
+                }
+            }
         }
+        .preferredColorScheme(.dark)
         .alert("Clear All Data?", isPresented: $showClearConfirm) {
             Button("Clear Everything", role: .destructive) { clearAllData() }
             Button("Cancel", role: .cancel) {}
@@ -47,7 +66,45 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Guest banner
+    // MARK: - App Header
+
+    private var appHeader: some View {
+        VStack(spacing: StudySpacing.small) {
+            ZStack {
+                Circle()
+                    .fill(StudyTheme.accentGradient)
+                    .frame(width: 76, height: 76)
+                Image(systemName: "brain.head.profile")
+                    .font(.system(size: 34, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            Text("AI Academic Mentor")
+                .font(.system(size: 26, weight: .black, design: .rounded))
+                .foregroundStyle(StudyTheme.primaryText)
+            Text("Version 1.0  ·  iOS App Development")
+                .font(StudyFont.caption)
+                .foregroundStyle(StudyTheme.secondaryText)
+
+            if let user = auth.currentUser {
+                HStack(spacing: 6) {
+                    Image(systemName: user.isAnonymous ? "person.fill.questionmark" : "checkmark.seal.fill")
+                        .font(.system(size: 11))
+                        .foregroundStyle(user.isAnonymous ? StudyTheme.warning : StudyTheme.success)
+                    Text(user.isAnonymous ? "Guest Account" : (user.email))
+                        .font(StudyFont.tiny)
+                        .foregroundStyle(StudyTheme.secondaryText)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 12).padding(.vertical, 5)
+                .background(StudyTheme.surface2)
+                .clipShape(Capsule())
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, StudySpacing.medium)
+    }
+
+    // MARK: - Guest Banner
 
     private var guestBanner: some View {
         HStack(spacing: StudySpacing.medium) {
@@ -63,7 +120,7 @@ struct SettingsView: View {
                     .foregroundStyle(StudyTheme.secondaryText)
             }
             Spacer()
-            Button("Sign In") { showSignOutConfirm = true } // signs out → back to auth
+            Button("Sign In") { showSignOutConfirm = true }
                 .font(StudyFont.tiny).fontWeight(.semibold)
                 .foregroundStyle(StudyTheme.warning)
                 .padding(.horizontal, 12).padding(.vertical, 6)
@@ -79,49 +136,161 @@ struct SettingsView: View {
         )
     }
 
-    // MARK: - App header
+    // MARK: - Stats Snapshot
 
-    private var appHeader: some View {
-        VStack(spacing: StudySpacing.small) {
-            ZStack {
-                Circle()
-                    .fill(StudyTheme.accentGradient)
-                    .frame(width: 72, height: 72)
-                Image(systemName: "brain.head.profile")
-                    .font(.system(size: 32, weight: .semibold))
-                    .foregroundStyle(.white)
-            }
-            Text("AI Academic Mentor")
-                .font(.system(size: 28, weight: .black, design: .rounded))
-                .foregroundStyle(StudyTheme.primaryText)
-            Text("Version 1.0  ·  iOS Application Development")
-                .font(StudyFont.caption)
-                .foregroundStyle(StudyTheme.secondaryText)
-            // Signed-in user chip
-            if let user = auth.currentUser {
-                HStack(spacing: 6) {
-                    Image(systemName: user.isAnonymous ? "person.fill.questionmark" : "checkmark.seal.fill")
-                        .font(.system(size: 11))
-                        .foregroundStyle(user.isAnonymous ? StudyTheme.warning : StudyTheme.success)
-                    Text(user.isAnonymous ? "Guest Account" : user.email)
-                        .font(StudyFont.tiny)
-                        .foregroundStyle(StudyTheme.secondaryText)
+    private var statsCard: some View {
+        StudyCard(title: "Your Progress") {
+            VStack(spacing: StudySpacing.medium) {
+                // Row 1 — quizzes, decks, docs
+                HStack(spacing: StudySpacing.medium) {
+                    statCell(value: "\(store.totalQuizzesTaken)",
+                             label: "Quizzes",
+                             icon: "checkmark.circle.fill",
+                             color: StudyTheme.accent)
+                    statCell(value: "\(store.totalDecksCreated)",
+                             label: "Decks",
+                             icon: "rectangle.on.rectangle.fill",
+                             color: StudyTheme.longBreakColor)
+                    statCell(value: "\(store.totalDocumentsAnalyzed)",
+                             label: "Docs",
+                             icon: "doc.text.fill",
+                             color: StudyTheme.shortBreakColor)
                 }
-                .padding(.horizontal, 10).padding(.vertical, 4)
-                .background(StudyTheme.surface2)
-                .clipShape(Capsule())
+
+                Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
+
+                // Row 2 — streak, avg, focus time
+                HStack {
+                    Label("\(store.currentStreak) day streak",
+                          systemImage: "flame.fill")
+                        .font(StudyFont.subtitle)
+                        .foregroundStyle(.orange)
+                    Spacer()
+                    if store.totalFocusMinutes > 0 {
+                        Label("\(store.totalFocusMinutes)m focused",
+                              systemImage: "brain.head.profile")
+                            .font(StudyFont.subtitle)
+                            .foregroundStyle(StudyTheme.accent)
+                    } else if store.totalQuizzesTaken > 0 {
+                        Text("Avg \(store.averageQuizScore.percentString)")
+                            .font(StudyFont.subtitle)
+                            .foregroundStyle(StudyTheme.accent)
+                    }
+                }
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, StudySpacing.large)
     }
 
-    // MARK: - Notifications card
+    private func statCell(value: String, label: String, icon: String, color: Color) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(color)
+            Text(value)
+                .font(.system(size: 24, weight: .black, design: .rounded))
+                .foregroundStyle(StudyTheme.primaryText)
+            Text(label)
+                .font(StudyFont.tiny)
+                .foregroundStyle(StudyTheme.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, StudySpacing.small)
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(StudyTheme.surface2))
+    }
+
+    // MARK: - Focus Monitor Card
+
+    private var focusMonitorCard: some View {
+        StudyCard(title: "Focus Monitor") {
+            VStack(spacing: StudySpacing.medium) {
+                // Hide camera preview toggle
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Label("AI Sensor Mode", systemImage: "eye.slash.fill")
+                            .font(StudyFont.body)
+                            .foregroundStyle(StudyTheme.primaryText)
+                        Text("Hides camera preview — shows abstract AI visualization instead.")
+                            .font(StudyFont.tiny)
+                            .foregroundStyle(StudyTheme.secondaryText)
+                    }
+                    Spacer()
+                    Toggle("", isOn: $hideCameraPreview)
+                        .tint(StudyTheme.accent)
+                }
+
+                Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
+
+                // Voice coach default toggle
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Label("Voice Coach On by Default", systemImage: "speaker.wave.2.fill")
+                            .font(StudyFont.body)
+                            .foregroundStyle(StudyTheme.primaryText)
+                        Text("AI speaks focus reminders and encouragement during sessions.")
+                            .font(StudyFont.tiny)
+                            .foregroundStyle(StudyTheme.secondaryText)
+                    }
+                    Spacer()
+                    Toggle("", isOn: $voiceDefault)
+                        .tint(StudyTheme.accent)
+                        .onChange(of: voiceDefault) { _ in
+                            // Preference is read by FocusSessionViewModel on next session start
+                        }
+                }
+
+                Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
+
+                // Stats row
+                HStack(spacing: 0) {
+                    focusStatPill(
+                        icon: "timer",
+                        value: store.totalFocusMinutes > 0
+                            ? "\(store.totalFocusMinutes)m"
+                            : "—",
+                        label: "Total Focus"
+                    )
+                    Rectangle().fill(StudyTheme.surfaceStroke).frame(width: 1, height: 36)
+                    focusStatPill(
+                        icon: "brain.head.profile",
+                        value: hideCameraPreview ? "AI Mode" : "Camera",
+                        label: "Display"
+                    )
+                    Rectangle().fill(StudyTheme.surfaceStroke).frame(width: 1, height: 36)
+                    focusStatPill(
+                        icon: "speaker.wave.2.fill",
+                        value: voiceDefault ? "On" : "Off",
+                        label: "Voice"
+                    )
+                }
+                .background(StudyTheme.surface2)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+        }
+    }
+
+    private func focusStatPill(icon: String, value: String, label: String) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundStyle(StudyTheme.accent)
+            Text(value)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(StudyTheme.primaryText)
+            Text(label)
+                .font(StudyFont.tiny)
+                .foregroundStyle(StudyTheme.tertiaryText)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+    }
+
+    // MARK: - Notifications Card
 
     private var notificationsCard: some View {
         StudyCard(title: "Study Reminders") {
             VStack(spacing: StudySpacing.medium) {
-                // Toggle row
                 HStack {
                     Label("Daily Reminder", systemImage: "bell.fill")
                         .font(StudyFont.body)
@@ -143,7 +312,6 @@ struct SettingsView: View {
                 if notif.reminderEnabled && notif.isAuthorized {
                     Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
 
-                    // Time picker
                     HStack {
                         Image(systemName: "clock.fill")
                             .foregroundStyle(StudyTheme.accent)
@@ -177,75 +345,18 @@ struct SettingsView: View {
         .task { await notif.checkStatus() }
     }
 
-    // MARK: - Stats snapshot
-
-    private var statsCard: some View {
-        StudyCard(title: "Your Progress") {
-            VStack(spacing: StudySpacing.medium) {
-                HStack(spacing: StudySpacing.medium) {
-                    statCell(value: "\(store.totalQuizzesTaken)",
-                             label: "Quizzes\nCompleted",
-                             icon: "checkmark.circle.fill",
-                             color: StudyTheme.accent)
-                    statCell(value: "\(store.totalDecksCreated)",
-                             label: "Flashcard\nDecks",
-                             icon: "rectangle.on.rectangle.fill",
-                             color: StudyTheme.longBreakColor)
-                    statCell(value: "\(store.totalDocumentsAnalyzed)",
-                             label: "Documents\nAnalyzed",
-                             icon: "doc.text.fill",
-                             color: StudyTheme.shortBreakColor)
-                }
-
-                Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
-
-                HStack {
-                    Label("\(store.currentStreak) day streak",
-                          systemImage: "flame.fill")
-                        .font(StudyFont.subtitle)
-                        .foregroundStyle(.orange)
-                    Spacer()
-                    if store.totalQuizzesTaken > 0 {
-                        Text("Avg \(store.averageQuizScore.percentString)")
-                            .font(StudyFont.subtitle)
-                            .foregroundStyle(StudyTheme.accent)
-                    }
-                }
-            }
-        }
-    }
-
-    private func statCell(value: String, label: String, icon: String, color: Color) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(color)
-            Text(value)
-                .font(.system(size: 24, weight: .black, design: .rounded))
-                .foregroundStyle(StudyTheme.primaryText)
-            Text(label)
-                .font(StudyFont.tiny)
-                .foregroundStyle(StudyTheme.secondaryText)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, StudySpacing.small)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(StudyTheme.surface2)
-        )
-    }
-
-    // MARK: - API Key info
+    // MARK: - AI Configuration Card
 
     private var apiKeyCard: some View {
         StudyCard(title: "AI Configuration") {
             VStack(alignment: .leading, spacing: StudySpacing.medium) {
-                infoRow(icon: "cpu", label: "AI Provider", value: "Groq")
+                infoRow(icon: "cpu",        label: "AI Provider",      value: "Groq")
                 Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
-                infoRow(icon: "brain", label: "Language Model", value: "Llama 3 70B")
+                infoRow(icon: "brain",      label: "Language Model",   value: "Llama 3 70B")
                 Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
-                infoRow(icon: "key.fill", label: "API Key", value: apiKeyStatus)
+                infoRow(icon: "network",    label: "Multi-Agent",      value: "CrewAI + FastAPI")
+                Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
+                infoRow(icon: "key.fill",   label: "API Key",          value: apiKeyStatus)
 
                 if !isAPIKeySet {
                     VStack(alignment: .leading, spacing: 6) {
@@ -258,10 +369,8 @@ struct SettingsView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(StudySpacing.medium)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(StudyTheme.warning.opacity(0.08))
-                    )
+                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(StudyTheme.warning.opacity(0.08)))
                 }
             }
         }
@@ -275,7 +384,7 @@ struct SettingsView: View {
         isAPIKeySet ? "Configured ✓" : "Not Set"
     }
 
-    // MARK: - Subjects
+    // MARK: - Subjects Card
 
     private var subjectsCard: some View {
         StudyCard(title: "Subjects (\(store.subjects.count))") {
@@ -320,7 +429,7 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - About / Danger zone
+    // MARK: - Danger Zone
 
     private var dangerZone: some View {
         VStack(spacing: StudySpacing.medium) {
@@ -331,6 +440,8 @@ struct SettingsView: View {
                     infoRow(icon: "calendar",           label: "Deadline",  value: "July 1, 2026")
                     Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
                     infoRow(icon: "person.fill",        label: "Developer", value: "Juan")
+                    Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
+                    infoRow(icon: "swift",              label: "Built with", value: "SwiftUI + Vision + GroqAI")
                 }
             }
 
@@ -388,7 +499,6 @@ struct SettingsView: View {
     }
 
     private func clearAllData() {
-        // BUG FIX: delegate to store so keys stay in sync and state is properly persisted
         store.clearAllLearningData()
     }
 }
