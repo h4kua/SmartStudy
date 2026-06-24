@@ -828,7 +828,7 @@ struct FocusSessionView: View {
             Text("Camera Access Needed")
                 .font(StudyFont.subtitle)
                 .foregroundStyle(.white)
-            Text("Enable camera in Settings → AI Academic Mentor → Camera")
+            Text("Enable camera in Settings → SmartStudy → Camera")
                 .font(StudyFont.caption)
                 .foregroundStyle(.white.opacity(0.65))
                 .multilineTextAlignment(.center)

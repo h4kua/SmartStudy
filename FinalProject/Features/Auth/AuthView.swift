@@ -96,7 +96,7 @@ private struct WelcomeScreen: View {
                 .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: appeared)
 
                 VStack(spacing: 4) {
-                    Text("AI Academic Mentor")
+                    Text("SmartStudy")
                         .font(.system(size: 28, weight: .black, design: .rounded))
                         .foregroundStyle(StudyTheme.primaryText)
                     Text("Your smart study companion")

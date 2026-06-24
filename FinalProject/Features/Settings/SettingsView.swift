@@ -78,7 +78,7 @@ struct SettingsView: View {
                     .font(.system(size: 34, weight: .semibold))
                     .foregroundStyle(.white)
             }
-            Text("AI Academic Mentor")
+            Text("SmartStudy")
                 .font(.system(size: 26, weight: .black, design: .rounded))
                 .foregroundStyle(StudyTheme.primaryText)
             Text("Version 1.0  ·  iOS App Development")

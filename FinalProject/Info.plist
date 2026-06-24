@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>AI Mentor</string>
+	<string>SmartStudy</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -31,15 +31,15 @@
 		</dict>
 	</dict>
 	<key>NSHealthShareUsageDescription</key>
-	<string>AI Academic Mentor reads your daily step count and sleep data to display in your learning progress dashboard.</string>
+	<string>SmartStudy reads your daily step count and sleep data to display in your learning progress dashboard.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>AI Academic Mentor uses the camera for Focus Monitor (eye and head tracking) and to scan handwritten notes or math equations for AI analysis.</string>
+	<string>SmartStudy uses the camera for Focus Monitor (eye and head tracking) and to scan handwritten notes or math equations for AI analysis.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>AI Academic Mentor reads photos so you can scan your notes or math equations for AI-powered quiz generation and equation solving.</string>
+	<string>SmartStudy reads photos so you can scan your notes or math equations for AI-powered quiz generation and equation solving.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>AI Academic Mentor uses the microphone so you can speak your questions to the AI Tutor.</string>
+	<string>SmartStudy uses the microphone so you can speak your questions to the AI Tutor.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>AI Academic Mentor uses speech recognition to convert your voice into text for the AI Tutor.</string>
+	<string>SmartStudy uses speech recognition to convert your voice into text for the AI Tutor.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

@@ -79,7 +79,7 @@ final class AITutorViewModel: ObservableObject {
             // Add as assistant message so it appears in chat
             messages.append(ChatMessage(
                 role: "assistant",
-                content: "⚠️ Couldn't read the equation from the photo: \(errMsg) Try better lighting or a clearer angle."
+                content: "Could not read the equation from the photo: \(errMsg) Try better lighting or a clearer angle."
             ))
         }
 

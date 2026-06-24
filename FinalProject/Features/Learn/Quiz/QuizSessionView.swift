@@ -62,7 +62,7 @@ struct QuizSessionView: View {
         HStack(spacing: 8) {
             Image(systemName: "eye.fill")
                 .font(.system(size: 13, weight: .bold))
-            Text("Come back — stay focused on the quiz! 👀")
+            Text("Come back — stay focused on the quiz!")
                 .font(StudyFont.caption)
                 .fontWeight(.semibold)
         }
@@ -527,7 +527,7 @@ struct QuizSessionView: View {
     private func focusInsight(quizPct: Double, focusPct: Double, avgScore: Double) -> String {
         switch (quizPct, focusPct) {
         case (80..., 70...):
-            return "Outstanding! High focus + high score — you were fully in the zone. 🎯"
+            return "Outstanding! High focus + high score — you were fully in the zone."
         case (80..., ..<50):
             return "Great score despite lower focus. Full concentration could push you even higher next time."
         case (..<60, ..<50):

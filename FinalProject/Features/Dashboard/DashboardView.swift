@@ -302,15 +302,15 @@ struct DashboardView: View {
                     .multilineTextAlignment(.leading)
 
                 HStack(spacing: 6) {
-                    agentTag("🔍 Analyst")
+                    agentTag("Analyst")
                     Image(systemName: "arrow.right")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(.white.opacity(0.50))
-                    agentTag("🎯 Coach")
+                    agentTag("Coach")
                     Image(systemName: "arrow.right")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(.white.opacity(0.50))
-                    agentTag("📅 Planner")
+                    agentTag("Planner")
                 }
             }
             .padding(StudySpacing.large)
@@ -368,7 +368,7 @@ struct DashboardView: View {
                         .font(.system(size: 28, weight: .semibold))
                         .foregroundStyle(StudyTheme.accent)
                 }
-                Text("Welcome to AI Academic Mentor")
+                Text("Welcome to SmartStudy")
                     .font(StudyFont.cardTitle)
                     .foregroundStyle(StudyTheme.primaryText)
                 Text("Use the tabs below to ask your AI tutor a question, analyze a document, or generate a quiz.")

@@ -159,7 +159,7 @@ final class DocumentAnalyzerViewModel: ObservableObject {
                 documentTitle = "Scanned Notes"
             }
             let wordCount = text.split(separator: " ").count
-            bannerMessage = "✓ Extracted \(wordCount) words — tap Analyze to generate quiz & flashcards!"
+            bannerMessage = "Extracted \(wordCount) words — tap Analyze to generate quiz & flashcards!"
         } catch {
             errorMessage = (error as? NoteScannerService.ScanError)?.errorDescription
                            ?? error.localizedDescription

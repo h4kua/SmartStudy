@@ -73,8 +73,8 @@ final class NotificationService: ObservableObject {
         comps.minute   = reminderMinute
 
         let content    = UNMutableNotificationContent()
-        content.title  = "Time to Study! 📚"
-        content.body   = "Keep your streak alive — open AI Academic Mentor and review your materials."
+        content.title  = "Time to Study"
+        content.body   = "Keep your streak alive — open SmartStudy and review your materials."
         content.sound  = .default
         content.badge  = 1
 
@@ -92,7 +92,7 @@ final class NotificationService: ObservableObject {
 
     func notifyPomodoroComplete(phase: String) {
         let content    = UNMutableNotificationContent()
-        content.title  = phase == "Focus" ? "✅ Focus Session Done!" : "☕ Break Over!"
+        content.title  = phase == "Focus" ? "Focus Session Done" : "Break Over"
         content.body   = phase == "Focus"
             ? "Great work! Take a well-deserved break."
             : "Time to focus again — let's go!"
@@ -108,7 +108,7 @@ final class NotificationService: ObservableObject {
 
     func notifyStreak(days: Int) {
         let content    = UNMutableNotificationContent()
-        content.title  = "🔥 \(days)-Day Streak!"
+        content.title  = "\(days)-Day Streak"
         content.body   = "Amazing consistency! Keep studying to extend your streak."
         content.sound  = .default
 

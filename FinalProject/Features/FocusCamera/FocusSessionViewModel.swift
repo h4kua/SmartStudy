@@ -153,8 +153,8 @@ final class FocusSessionViewModel: ObservableObject {
 
         let grade: String
         switch pct {
-        case 80...:  grade = "Excellent focus session! 🎯"
-        case 60...:  grade = "Good session — keep it up! 👍"
+        case 80...:  grade = "Excellent focus session!"
+        case 60...:  grade = "Good session — keep it up!"
         case 40...:  grade = "Room for improvement. Try fewer distractions next time."
         default:     grade = "Tough session. Consider a short break before trying again."
         }
