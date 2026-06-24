@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleDisplayName</key>
+	<string>AI Mentor</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -38,5 +40,14 @@
 	<string>AI Academic Mentor uses the microphone so you can speak your questions to the AI Tutor.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>AI Academic Mentor uses speech recognition to convert your voice into text for the AI Tutor.</string>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+		<key>UIImageName</key>
+		<string>LaunchIcon</string>
+		<key>UIImageRespectsSafeAreaLayoutGuide</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
