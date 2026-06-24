@@ -17,6 +17,7 @@
 		A6A4F4E62FDB9EE70083B8D2 /* FinalProjectUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4E52FDB9EE70083B8D2 /* FinalProjectUITests.swift */; };
 		A6A4F4E82FDB9EE70083B8D2 /* FinalProjectUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4E72FDB9EE70083B8D2 /* FinalProjectUITestsLaunchTests.swift */; };
 		AC347A1D08AA5FD7C88E351E /* ImagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB1A398A1B54D06DBF6106F /* ImagePickerView.swift */; };
+		BE453FCA690344C368C30454 /* QuizFocusMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29D74C5803FD1B89BD623D83 /* QuizFocusMonitor.swift */; };
 		CREWSVC01CREWSVC01BLDF /* CrewAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWSVC01CREWSVC01STDY /* CrewAIService.swift */; };
 		CREWVW001CREWVW001BLDF /* StudyCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWVW001CREWVW001STDY /* StudyCoachView.swift */; };
 		FA3CBD01FA3CBD01FA3CBD01 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = FA3CBD02FA3CBD02FA3CBD02 /* FirebaseAuth */; };
@@ -76,6 +77,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		29D74C5803FD1B89BD623D83 /* QuizFocusMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizFocusMonitor.swift; sourceTree = "<group>"; };
 		4CB1A398A1B54D06DBF6106F /* ImagePickerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImagePickerView.swift; sourceTree = "<group>"; };
 		A63CBD5A2FDBB2CF0086CC37 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A6A4F4C62FDB9EE10083B8D2 /* FinalProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinalProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -281,6 +283,7 @@
 				FCANL001FCANL001STDY /* FocusAnalyzer.swift */,
 				FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */,
 				FCAVW001FCAVW001STDY /* FocusSessionView.swift */,
+				29D74C5803FD1B89BD623D83 /* QuizFocusMonitor.swift */,
 			);
 			path = FocusCamera;
 			sourceTree = "<group>";
@@ -570,6 +573,7 @@
 				FCAVW001FCAVW001BLDF /* FocusSessionView.swift in Sources */,
 				7BFE355E423BCA41BEA0C120 /* NoteScannerService.swift in Sources */,
 				AC347A1D08AA5FD7C88E351E /* ImagePickerView.swift in Sources */,
+				BE453FCA690344C368C30454 /* QuizFocusMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

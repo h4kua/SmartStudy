@@ -3,6 +3,7 @@ import SwiftUI
 struct QuizSessionView: View {
     @EnvironmentObject var store: LearningStore
     @ObservedObject var vm: QuizViewModel
+    @StateObject private var focusMonitor = QuizFocusMonitor()
     @State private var showFullReview = false
 
     var body: some View {
@@ -17,13 +18,59 @@ struct QuizSessionView: View {
                 quizView
                     .transition(.opacity)
             }
+
+            // ── Focus nudge banner (away ≥ 8 s) ────────────────
+            if focusMonitor.isActive
+                && !vm.showResults
+                && focusMonitor.awaySeconds >= 8 {
+                VStack {
+                    focusNudgeBanner
+                        .padding(.top, 58)   // clears the header
+                    Spacer()
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .allowsHitTesting(false)
+                .zIndex(10)
+            }
         }
-        .animation(.easeInOut(duration: 0.3), value: vm.showResults)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: vm.showResults)
+        .animation(.easeInOut(duration: 0.3), value: focusMonitor.awaySeconds >= 8)
+        // Start focus monitor for NEW sessions only
+        .task {
+            if !vm.showResults {
+                await focusMonitor.start()
+            }
+        }
+        // Stop when results appear (snapshot final stats)
+        .onChange(of: vm.showResults) { isResults in
+            if isResults { focusMonitor.stop() }
+        }
+        // Clean up if user exits mid-quiz
+        .onDisappear { focusMonitor.stop() }
         .sheet(isPresented: $showFullReview) {
             if let session = vm.activeSession {
                 QuizReviewView(session: session)
             }
         }
+    }
+
+    // =========================================================
+    // MARK: - Focus nudge banner
+    // =========================================================
+
+    private var focusNudgeBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "eye.fill")
+                .font(.system(size: 13, weight: .bold))
+            Text("Come back — stay focused on the quiz! 👀")
+                .font(StudyFont.caption)
+                .fontWeight(.semibold)
+        }
+        .foregroundStyle(.black)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 10)
+        .background(StudyTheme.warning, in: Capsule())
+        .shadow(color: StudyTheme.warning.opacity(0.45), radius: 10, y: 4)
     }
 
     // =========================================================
@@ -72,8 +119,10 @@ struct QuizSessionView: View {
                     .foregroundStyle(StudyTheme.secondaryText)
             }
             Spacer()
-            // Balance the X button
-            Color.clear.frame(width: 36, height: 36)
+
+            // Focus state dot indicator
+            focusDot
+                .frame(width: 36, height: 36)
         }
         .padding(.horizontal, StudySpacing.large)
         .padding(.vertical, StudySpacing.medium)
@@ -81,6 +130,24 @@ struct QuizSessionView: View {
             .overlay(alignment: .bottom) {
                 Rectangle().fill(StudyTheme.surfaceStroke).frame(height: 1)
             })
+    }
+
+    /// Small colored dot in top-right of quiz header showing live focus state.
+    private var focusDot: some View {
+        ZStack {
+            if focusMonitor.isActive {
+                Circle()
+                    .fill(focusMonitor.focusState.color.opacity(0.18))
+                    .frame(width: 36, height: 36)
+                Circle()
+                    .fill(focusMonitor.focusState.color)
+                    .frame(width: 10, height: 10)
+                    .shadow(color: focusMonitor.focusState.color.opacity(0.5), radius: 4)
+            } else {
+                Color.clear
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: focusMonitor.focusState.rawValue)
     }
 
     // --- Progress bar ---
@@ -134,22 +201,22 @@ struct QuizSessionView: View {
     }
 
     private func answerButton(index: Int) -> some View {
-        let letters    = ["A", "B", "C", "D"]
-        let correct    = vm.currentQuestion?.correctIndex == index
-        let chosen     = vm.selectedAnswer == index
-        let answered   = vm.selectedAnswer != nil
+        let letters  = ["A", "B", "C", "D"]
+        let correct  = vm.currentQuestion?.correctIndex == index
+        let chosen   = vm.selectedAnswer == index
+        let answered = vm.selectedAnswer != nil
 
         let bg: Color = {
             guard answered else { return StudyTheme.surface }
-            if correct          { return StudyTheme.success.opacity(0.15) }
-            if chosen           { return StudyTheme.danger.opacity(0.15) }
+            if correct { return StudyTheme.success.opacity(0.15) }
+            if chosen  { return StudyTheme.danger.opacity(0.15) }
             return StudyTheme.surface
         }()
 
         let border: Color = {
             guard answered else { return StudyTheme.surfaceStroke }
-            if correct          { return StudyTheme.success }
-            if chosen           { return StudyTheme.danger }
+            if correct { return StudyTheme.success }
+            if chosen  { return StudyTheme.danger }
             return StudyTheme.surfaceStroke
         }()
 
@@ -162,8 +229,7 @@ struct QuizSessionView: View {
 
         return Button {
             let isCorrect = vm.currentQuestion?.correctIndex == index
-            let feedback = UINotificationFeedbackGenerator()
-            feedback.notificationOccurred(isCorrect ? .success : .error)
+            UINotificationFeedbackGenerator().notificationOccurred(isCorrect ? .success : .error)
             vm.selectAnswer(index, store: store)
         } label: {
             HStack(spacing: StudySpacing.medium) {
@@ -183,7 +249,9 @@ struct QuizSessionView: View {
                 Spacer()
 
                 if answered {
-                    Image(systemName: correct ? "checkmark.circle.fill" : (chosen ? "xmark.circle.fill" : ""))
+                    Image(systemName: correct
+                          ? "checkmark.circle.fill"
+                          : (chosen ? "xmark.circle.fill" : ""))
                         .foregroundStyle(correct ? StudyTheme.success : StudyTheme.danger)
                         .opacity(correct || chosen ? 1 : 0)
                 }
@@ -257,6 +325,11 @@ struct QuizSessionView: View {
                 resultsHeader
                 scoreCircle
                 statsRow
+                // Focus stats card — only shown when camera was active this session
+                if focusMonitor.finalResult.isValid {
+                    focusStatsCard
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
                 if let session = vm.activeSession { reviewCard(session) }
                 actionButtons
             }
@@ -357,6 +430,121 @@ struct QuizSessionView: View {
         )
     }
 
+    // =========================================================
+    // MARK: - Focus Stats Card (new — shown on results screen)
+    // =========================================================
+
+    private var focusStatsCard: some View {
+        let r        = focusMonitor.finalResult
+        let avgScore = r.avgScore
+        let focusPct = r.focusedPercent
+        let quizPct  = (vm.activeSession?.percentage ?? 0) * 100
+
+        let avgColor: Color = avgScore >= 65
+            ? StudyTheme.success
+            : (avgScore >= 40 ? StudyTheme.warning : StudyTheme.danger)
+
+        let focusColor: Color = focusPct >= 70
+            ? StudyTheme.success
+            : (focusPct >= 45 ? StudyTheme.warning : StudyTheme.danger)
+
+        return StudyCard(title: "Focus During Quiz") {
+            VStack(spacing: StudySpacing.medium) {
+
+                // Eye icon + header hint
+                HStack(spacing: 6) {
+                    Image(systemName: "eye.fill")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(StudyTheme.accent)
+                    Text("Tracked by front camera · no video stored")
+                        .font(StudyFont.tiny)
+                        .foregroundStyle(StudyTheme.tertiaryText)
+                    Spacer()
+                }
+
+                // Two metric tiles
+                HStack(spacing: StudySpacing.medium) {
+                    focusMetricTile(
+                        icon: "brain.head.profile",
+                        value: "\(Int(avgScore))%",
+                        label: "Avg Focus Score",
+                        color: avgColor
+                    )
+                    focusMetricTile(
+                        icon: "clock.fill",
+                        value: "\(Int(focusPct))%",
+                        label: "Time Focused",
+                        color: focusColor
+                    )
+                }
+
+                // AI insight line
+                let insight = focusInsight(quizPct: quizPct, focusPct: focusPct, avgScore: avgScore)
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(StudyTheme.accent)
+                        .padding(.top, 1)
+                    Text(insight)
+                        .font(StudyFont.tiny)
+                        .foregroundStyle(StudyTheme.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(StudySpacing.small)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(StudyTheme.accentSoft, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(StudyTheme.accent.opacity(0.15), lineWidth: 1)
+                )
+            }
+        }
+    }
+
+    private func focusMetricTile(icon: String, value: String, label: String, color: Color) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(color)
+            Text(value)
+                .font(.system(size: 26, weight: .black, design: .rounded))
+                .foregroundStyle(color)
+            Text(label)
+                .font(StudyFont.tiny)
+                .foregroundStyle(StudyTheme.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, StudySpacing.medium)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(StudyTheme.surface2)
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(color.opacity(0.2), lineWidth: 1))
+        )
+    }
+
+    private func focusInsight(quizPct: Double, focusPct: Double, avgScore: Double) -> String {
+        switch (quizPct, focusPct) {
+        case (80..., 70...):
+            return "Outstanding! High focus + high score — you were fully in the zone. 🎯"
+        case (80..., ..<50):
+            return "Great score despite lower focus. Full concentration could push you even higher next time."
+        case (..<60, ..<50):
+            return "Low focus likely impacted your score. Try a quieter environment and take a short break first."
+        case (..<60, 70...):
+            return "Good focus but the topic needs more review. Go over the wrong answers — you have the attention, now build the knowledge."
+        case (60..., 70...):
+            return "Solid focus kept you on track. Review the missed questions to close the gap."
+        default:
+            return "Decent session. Reducing short distractions during quizzes typically improves scores by 10–15%."
+        }
+    }
+
+    // =========================================================
+    // MARK: - Review card (existing)
+    // =========================================================
+
     private func reviewCard(_ session: QuizSession) -> some View {
         StudyCard(title: "Review Answers") {
             VStack(spacing: StudySpacing.medium) {
@@ -393,10 +581,7 @@ struct QuizSessionView: View {
     private var actionButtons: some View {
         VStack(spacing: StudySpacing.small) {
             if let session = vm.activeSession {
-                // Full Review button — opens QuizReviewView
-                Button {
-                    showFullReview = true
-                } label: {
+                Button { showFullReview = true } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "list.bullet.clipboard.fill")
                         Text("Review All Answers").font(StudyFont.subtitle)
@@ -405,9 +590,7 @@ struct QuizSessionView: View {
                 }
                 .buttonStyle(PrimaryStudyButtonStyle())
 
-                Button {
-                    vm.retakeSession(session, store: store)
-                } label: {
+                Button { vm.retakeSession(session, store: store) } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "arrow.counterclockwise")
                         Text("Retake Quiz").font(StudyFont.subtitle)
