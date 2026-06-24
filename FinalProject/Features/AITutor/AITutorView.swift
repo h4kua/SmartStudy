@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct AITutorView: View {
     @EnvironmentObject var store: LearningStore
@@ -14,6 +15,27 @@ struct AITutorView: View {
             }
             .background(StudyTheme.backgroundGradient.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
+        }
+        // Equation solver image picker
+        .sheet(isPresented: $vm.showEquationPicker) {
+            ImagePickerView(sourceType: vm.equationSourceType) { image in
+                Task { await vm.solveEquation(from: image) }
+            }
+        }
+        .confirmationDialog("Solve Equation", isPresented: $vm.showEquationMenu, titleVisibility: .visible) {
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button("Take Photo of Equation") {
+                    vm.equationSourceType = .camera
+                    vm.showEquationPicker = true
+                }
+            }
+            Button("Choose from Library") {
+                vm.equationSourceType = .photoLibrary
+                vm.showEquationPicker = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("AI will read and solve the equation step-by-step.")
         }
     }
 
@@ -161,6 +183,18 @@ struct AITutorView: View {
                     .multilineTextAlignment(.center)
             }
 
+            // Equation solver hint
+            HStack(spacing: 6) {
+                Image(systemName: "function")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(StudyTheme.warning)
+                Text("Tap  𝑓  to solve a math equation from a photo")
+                    .font(StudyFont.tiny)
+                    .foregroundStyle(StudyTheme.tertiaryText)
+            }
+            .padding(.horizontal, 14).padding(.vertical, 8)
+            .background(StudyTheme.warning.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+
             // Suggestion chips
             VStack(spacing: StudySpacing.small) {
                 suggestionChip("Explain quantum entanglement simply")
@@ -263,6 +297,7 @@ struct AITutorView: View {
             }
 
             HStack(spacing: StudySpacing.small) {
+                // Voice input
                 Button { vm.toggleRecording() } label: {
                     Image(systemName: speech.isListening ? "stop.circle.fill" : "mic.circle.fill")
                         .font(.system(size: 32))
@@ -270,6 +305,23 @@ struct AITutorView: View {
                         .scaleEffect(speech.isListening ? 1.1 : 1.0)
                         .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: speech.isListening)
                 }
+
+                // Equation Photo Solver button
+                Button { vm.showEquationMenu = true } label: {
+                    ZStack {
+                        if vm.isSolvingEquation {
+                            ProgressView()
+                                .scaleEffect(0.75)
+                                .tint(StudyTheme.warning)
+                        } else {
+                            Image(systemName: "function")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundStyle(StudyTheme.warning)
+                        }
+                    }
+                    .frame(width: 32, height: 32)
+                }
+                .disabled(vm.isSolvingEquation || vm.isLoading)
 
                 TextField("Ask your tutor...", text: $vm.inputText, axis: .vertical)
                     .font(StudyFont.body)

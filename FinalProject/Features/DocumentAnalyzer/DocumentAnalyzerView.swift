@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
 
 struct DocumentAnalyzerView: View {
@@ -50,6 +51,28 @@ struct DocumentAnalyzerView: View {
         .sheet(isPresented: $vm.showGenerateSheet) {
             generateSheet
         }
+        // Note Scanner — image picker sheet
+        .sheet(isPresented: $vm.showScanPicker) {
+            ImagePickerView(sourceType: vm.scanSourceType) { image in
+                Task { await vm.scanImage(image) }
+            }
+        }
+        // Scan source action sheet
+        .confirmationDialog("Scan Notes", isPresented: $vm.showScanMenu, titleVisibility: .visible) {
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button("Take Photo") {
+                    vm.scanSourceType = .camera
+                    vm.showScanPicker = true
+                }
+            }
+            Button("Choose from Photo Library") {
+                vm.scanSourceType = .photoLibrary
+                vm.showScanPicker = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Take or choose a photo of your notes to extract text automatically.")
+        }
         .fileImporter(
             isPresented: $vm.showFilePicker,
             allowedContentTypes: [.plainText, .pdf],
@@ -93,7 +116,7 @@ struct DocumentAnalyzerView: View {
 
                 // Text editor
                 VStack(alignment: .leading, spacing: StudySpacing.small) {
-                    HStack {
+                    HStack(spacing: 6) {
                         Text("Content")
                             .font(StudyFont.tiny)
                             .foregroundStyle(StudyTheme.secondaryText)
@@ -102,8 +125,30 @@ struct DocumentAnalyzerView: View {
                         Text("\(vm.wordCount) words")
                             .font(StudyFont.tiny)
                             .foregroundStyle(StudyTheme.tertiaryText)
+
+                        // ── Scan Notes button (NEW) ──────────────────────
+                        Button { vm.showScanMenu = true } label: {
+                            if vm.isScanning {
+                                HStack(spacing: 4) {
+                                    ProgressView().scaleEffect(0.7).tint(StudyTheme.success)
+                                    Text("Scanning…").font(StudyFont.tiny)
+                                }
+                                .foregroundStyle(StudyTheme.success)
+                                .padding(.horizontal, 8).padding(.vertical, 4)
+                                .background(StudyTheme.success.opacity(0.12), in: Capsule())
+                            } else {
+                                Label("Scan Notes", systemImage: "camera.viewfinder")
+                                    .font(StudyFont.tiny)
+                                    .foregroundStyle(StudyTheme.success)
+                                    .padding(.horizontal, 10).padding(.vertical, 4)
+                                    .background(StudyTheme.success.opacity(0.12), in: Capsule())
+                            }
+                        }
+                        .disabled(vm.isScanning)
+
+                        // ── Import File button ────────────────────────────
                         Button { vm.showFilePicker = true } label: {
-                            Label("Import File", systemImage: "doc.fill")
+                            Label("File", systemImage: "doc.fill")
                                 .font(StudyFont.tiny)
                                 .foregroundStyle(StudyTheme.accent)
                                 .padding(.horizontal, 10)
@@ -174,18 +219,18 @@ struct DocumentAnalyzerView: View {
 
     private var featureHints: some View {
         HStack(spacing: StudySpacing.medium) {
-            featureHint(icon: "text.alignleft",      label: "Summary")
-            featureHint(icon: "lightbulb",            label: "Key Concepts")
-            featureHint(icon: "book.closed",          label: "Definitions")
-            featureHint(icon: "questionmark.circle",  label: "Questions")
+            featureHint(icon: "camera.viewfinder",    label: "Scan\nNotes",   color: StudyTheme.success)
+            featureHint(icon: "text.alignleft",       label: "AI\nSummary",   color: StudyTheme.accent)
+            featureHint(icon: "checkmark.circle",     label: "Quiz\nGen",     color: StudyTheme.shortBreakColor)
+            featureHint(icon: "rectangle.on.rectangle", label: "Flashcard\nGen", color: StudyTheme.longBreakColor)
         }
     }
 
-    private func featureHint(icon: String, label: String) -> some View {
+    private func featureHint(icon: String, label: String, color: Color = StudyTheme.accent) -> some View {
         VStack(spacing: 5) {
             Image(systemName: icon)
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(StudyTheme.accent)
+                .foregroundStyle(color)
             Text(label)
                 .font(StudyFont.tiny)
                 .foregroundStyle(StudyTheme.tertiaryText)

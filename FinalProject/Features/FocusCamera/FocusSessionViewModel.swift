@@ -204,9 +204,13 @@ final class FocusSessionViewModel: ObservableObject {
 
         focusScore = smoothedScore
 
-        // Voice: state-change feedback
+        // Voice + haptic: state-change feedback
         if newState != previousState {
             voiceCoach.onTransition(to: newState, from: previousState)
+            // Haptic alert when drowsiness first detected
+            if newState == .drowsy {
+                UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            }
             previousState = newState
         }
 

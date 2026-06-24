@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 @MainActor
 final class AITutorViewModel: ObservableObject {
@@ -8,6 +9,12 @@ final class AITutorViewModel: ObservableObject {
     @Published var errorMessage:  String?
     @Published var isRecording:   Bool          = false
     @Published var canRetry:      Bool          = false
+
+    // Equation Photo Solver
+    @Published var showEquationMenu:   Bool = false
+    @Published var showEquationPicker: Bool = false
+    @Published var equationSourceType: UIImagePickerController.SourceType = .photoLibrary
+    @Published var isSolvingEquation:  Bool = false
 
     /// The last failed user message — kept so we can retry.
     private var lastFailedText: String?
@@ -47,6 +54,36 @@ final class AITutorViewModel: ObservableObject {
                 speech.start()
             }
         }
+    }
+
+    // MARK: - Equation Photo Solver
+
+    /// Scan an equation photo with Vision OCR → send to Groq for step-by-step solution.
+    func solveEquation(from image: UIImage) async {
+        isSolvingEquation = true
+
+        do {
+            let scannedText = try await NoteScannerService.recognizeText(from: image)
+            // Build a structured math-solving prompt
+            let prompt = """
+            Solve the following step-by-step, showing all working clearly:
+
+            \(scannedText)
+
+            Format your answer with numbered steps.
+            """
+            await sendMessage(prompt)
+        } catch {
+            let errMsg = (error as? NoteScannerService.ScanError)?.errorDescription
+                         ?? error.localizedDescription
+            // Add as assistant message so it appears in chat
+            messages.append(ChatMessage(
+                role: "assistant",
+                content: "⚠️ Couldn't read the equation from the photo: \(errMsg) Try better lighting or a clearer angle."
+            ))
+        }
+
+        isSolvingEquation = false
     }
 
     func clearChat() {

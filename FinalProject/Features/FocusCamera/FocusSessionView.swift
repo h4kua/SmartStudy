@@ -179,6 +179,7 @@ struct FocusSessionView: View {
 
     /// Persisted preference: hide camera preview and show AI visualization instead.
     @AppStorage("focus.hideCameraPreview") private var hideCameraPreview: Bool = false
+    @State private var drowsyPulse: Bool = false
 
     var body: some View {
         ZStack {
@@ -226,6 +227,12 @@ struct FocusSessionView: View {
             }
             .padding(.horizontal, StudySpacing.large)
 
+            // ── Drowsiness alert overlay (NEW) ──────────────────
+            if vm.isActive && vm.focusState == .drowsy {
+                drowsinessAlertOverlay
+                    .transition(.opacity)
+            }
+
             // ── Away warning overlay ─────────────────────────────
             if vm.showAwayWarning {
                 awayWarningOverlay
@@ -242,6 +249,12 @@ struct FocusSessionView: View {
         .onChange(of: vm.showSummary) { showing in
             if showing {
                 store.logFocusSession(durationSeconds: vm.stats.totalSeconds)
+            }
+        }
+        // Animate drowsiness pulse when entering/leaving drowsy state
+        .onChange(of: vm.focusState) { state in
+            withAnimation(.easeInOut(duration: 0.3)) {
+                drowsyPulse = (state == .drowsy)
             }
         }
     }
@@ -623,6 +636,70 @@ struct FocusSessionView: View {
             }
         }
         .padding(.bottom, StudySpacing.xxLarge)
+    }
+
+    // MARK: - Drowsiness Alert Overlay
+
+    /// Subtle amber pulsing overlay shown when drowsy state is detected.
+    /// Non-blocking — just a visual reminder. Voice coach also speaks.
+    private var drowsinessAlertOverlay: some View {
+        ZStack {
+            // Pulsing amber glow from top (mimics "screen flash" without obscuring content)
+            VStack(spacing: 0) {
+                LinearGradient(
+                    colors: [
+                        StudyTheme.warning.opacity(drowsyPulse ? 0.45 : 0.15),
+                        Color.clear
+                    ],
+                    startPoint: .top, endPoint: .bottom
+                )
+                .frame(height: 160)
+                .ignoresSafeArea(edges: .top)
+                .animation(
+                    .easeInOut(duration: 0.9).repeatForever(autoreverses: true),
+                    value: drowsyPulse
+                )
+                Spacer()
+
+                // Pulsing amber glow from bottom
+                LinearGradient(
+                    colors: [
+                        Color.clear,
+                        StudyTheme.warning.opacity(drowsyPulse ? 0.30 : 0.08)
+                    ],
+                    startPoint: .top, endPoint: .bottom
+                )
+                .frame(height: 120)
+                .ignoresSafeArea(edges: .bottom)
+                .animation(
+                    .easeInOut(duration: 0.9).repeatForever(autoreverses: true).delay(0.15),
+                    value: drowsyPulse
+                )
+            }
+
+            // Drowsy warning banner at top-center
+            VStack {
+                HStack(spacing: 8) {
+                    Image(systemName: "eye.slash.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                    Text("DROWSINESS DETECTED")
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .tracking(1.0)
+                }
+                .foregroundStyle(.black)
+                .padding(.horizontal, 16).padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(StudyTheme.warning)
+                        .shadow(color: StudyTheme.warning.opacity(0.5), radius: 12, y: 4)
+                )
+                .opacity(drowsyPulse ? 1 : 0.6)
+                .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: drowsyPulse)
+                .padding(.top, 60)
+                Spacer()
+            }
+        }
+        .allowsHitTesting(false) // don't block taps on underlying UI
     }
 
     // MARK: - Away Warning Overlay

@@ -1,5 +1,6 @@
 import Foundation
 import PDFKit
+import UIKit
 import UniformTypeIdentifiers
 
 @MainActor
@@ -10,6 +11,12 @@ final class DocumentAnalyzerViewModel: ObservableObject {
     @Published var documentTitle  = ""
     @Published var inputText      = ""
     @Published var showFilePicker = false
+
+    // MARK: - Note Scanner
+    @Published var showScanMenu    = false
+    @Published var showScanPicker  = false
+    @Published var scanSourceType: UIImagePickerController.SourceType = .photoLibrary
+    @Published var isScanning      = false
 
     // MARK: - Analysis state
 
@@ -135,6 +142,30 @@ final class DocumentAnalyzerViewModel: ObservableObject {
         }
 
         isGeneratingFlashcards = false
+    }
+
+    // MARK: - Note Scanner (Vision OCR)
+
+    /// Called when user picks an image from camera or photo library.
+    /// Runs on-device OCR → populates inputText → ready to analyze with AI.
+    func scanImage(_ image: UIImage) async {
+        isScanning   = true
+        errorMessage = nil
+
+        do {
+            let text = try await NoteScannerService.recognizeText(from: image)
+            inputText = text
+            if documentTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                documentTitle = "Scanned Notes"
+            }
+            let wordCount = text.split(separator: " ").count
+            bannerMessage = "✓ Extracted \(wordCount) words — tap Analyze to generate quiz & flashcards!"
+        } catch {
+            errorMessage = (error as? NoteScannerService.ScanError)?.errorDescription
+                           ?? error.localizedDescription
+        }
+
+        isScanning = false
     }
 
     // MARK: - File import

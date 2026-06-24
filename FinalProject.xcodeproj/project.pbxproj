@@ -7,32 +7,31 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7BFE355E423BCA41BEA0C120 /* NoteScannerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B214289D510CA80D9EC1480E /* NoteScannerService.swift */; };
 		A63CBD552FDBB0CF0086CC37 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A63CBD542FDBB0CF0086CC37 /* GoogleSignIn */; };
 		A63CBD572FDBB0CF0086CC37 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A63CBD562FDBB0CF0086CC37 /* GoogleSignInSwift */; };
-		FA3CBD01FA3CBD01FA3CBD01 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = FA3CBD02FA3CBD02FA3CBD02 /* FirebaseAuth */; };
-		FBSVC001FBSVC001FBBLDF /* FirebaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBSVC001FBSVC001FBSTDY /* FirebaseAuthService.swift */; };
-		FBAUTH01FBAUTH01FBBLDF /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBAUTH01FBAUTH01FBSTDY /* AuthView.swift */; };
-		NOTFSVC01NOTFSVC01BLDF /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = NOTFSVC01NOTFSVC01STDY /* NotificationService.swift */; };
-		TIMRVM01TIMRVM001BLDF /* TimerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = TIMRVM01TIMRVM001STDY /* TimerViewModel.swift */; };
-		TIMRVW01TIMRVW001BLDF /* TimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TIMRVW01TIMRVW001STDY /* TimerView.swift */; };
-		QZRVW001QZRVW001BLDF /* QuizReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = QZRVW001QZRVW001STDY /* QuizReviewView.swift */; };
-		SUBJMG01SUBJMG01BLDF /* SubjectManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SUBJMG01SUBJMG01STDY /* SubjectManagementView.swift */; };
-		CREWSVC01CREWSVC01BLDF /* CrewAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWSVC01CREWSVC01STDY /* CrewAIService.swift */; };
-		CREWVW001CREWVW001BLDF /* StudyCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWVW001CREWVW001STDY /* StudyCoachView.swift */; };
-		FCAVC001FCAVC001BLDF /* FocusVoiceCoach.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAVC001FCAVC001STDY /* FocusVoiceCoach.swift */; };
-		FCAMSVC01FCAMSVC01BLDF /* FocusCameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */; };
-		FCANL001FCANL001BLDF /* FocusAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCANL001FCANL001STDY /* FocusAnalyzer.swift */; };
-		FCAVML01FCAVML01BLDF /* FocusSessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */; };
-		FCAVW001FCAVW001BLDF /* FocusSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAVW001FCAVW001STDY /* FocusSessionView.swift */; };
 		A6A4F4CA2FDB9EE10083B8D2 /* FinalProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4C92FDB9EE10083B8D2 /* FinalProjectApp.swift */; };
 		A6A4F4CE2FDB9EE70083B8D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6A4F4CD2FDB9EE70083B8D2 /* Assets.xcassets */; };
 		A6A4F4D22FDB9EE70083B8D2 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6A4F4D12FDB9EE70083B8D2 /* Preview Assets.xcassets */; };
-		FBGSVC001FBGSVC001FBRSRC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FBGSVC001FBGSVC001FBSTDY /* GoogleService-Info.plist */; };
 		A6A4F4DC2FDB9EE70083B8D2 /* FinalProjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4DB2FDB9EE70083B8D2 /* FinalProjectTests.swift */; };
 		A6A4F4E62FDB9EE70083B8D2 /* FinalProjectUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4E52FDB9EE70083B8D2 /* FinalProjectUITests.swift */; };
 		A6A4F4E82FDB9EE70083B8D2 /* FinalProjectUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4F4E72FDB9EE70083B8D2 /* FinalProjectUITestsLaunchTests.swift */; };
+		AC347A1D08AA5FD7C88E351E /* ImagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB1A398A1B54D06DBF6106F /* ImagePickerView.swift */; };
+		CREWSVC01CREWSVC01BLDF /* CrewAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWSVC01CREWSVC01STDY /* CrewAIService.swift */; };
+		CREWVW001CREWVW001BLDF /* StudyCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREWVW001CREWVW001STDY /* StudyCoachView.swift */; };
+		FA3CBD01FA3CBD01FA3CBD01 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = FA3CBD02FA3CBD02FA3CBD02 /* FirebaseAuth */; };
+		FBAUTH01FBAUTH01FBBLDF /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBAUTH01FBAUTH01FBSTDY /* AuthView.swift */; };
+		FBGSVC001FBGSVC001FBRSRC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FBGSVC001FBGSVC001FBSTDY /* GoogleService-Info.plist */; };
+		FBSVC001FBSVC001FBBLDF /* FirebaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBSVC001FBSVC001FBSTDY /* FirebaseAuthService.swift */; };
+		FCAMSVC01FCAMSVC01BLDF /* FocusCameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */; };
+		FCANL001FCANL001BLDF /* FocusAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCANL001FCANL001STDY /* FocusAnalyzer.swift */; };
+		FCAVC001FCAVC001BLDF /* FocusVoiceCoach.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAVC001FCAVC001STDY /* FocusVoiceCoach.swift */; };
+		FCAVML01FCAVML01BLDF /* FocusSessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */; };
+		FCAVW001FCAVW001BLDF /* FocusSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAVW001FCAVW001STDY /* FocusSessionView.swift */; };
 		HLTHFRMWK001HLTHFRMWK_BF /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = HLTHFRMWK001HLTHFRMWK_RF /* HealthKit.framework */; };
 		HLTHSVC001HLTHSVC001BLDF /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = HLTHSVC001HLTHSVC001STDY /* HealthKitService.swift */; };
+		NOTFSVC01NOTFSVC01BLDF /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = NOTFSVC01NOTFSVC01STDY /* NotificationService.swift */; };
+		QZRVW001QZRVW001BLDF /* QuizReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = QZRVW001QZRVW001STDY /* QuizReviewView.swift */; };
 		SCSTDY001SCSTDY001SCBLDF /* StudyTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY001SCSTDY001SCSTDY /* StudyTheme.swift */; };
 		SCSTDY002SCSTDY002SCBLDF /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY002SCSTDY002SCSTDY /* Models.swift */; };
 		SCSTDY004SCSTDY004SCBLDF /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY004SCSTDY004SCSTDY /* MainTabView.swift */; };
@@ -54,6 +53,9 @@
 		SCSTDY026SCSTDY026SCBLDF /* FlashcardReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY026SCSTDY026SCSTDY /* FlashcardReviewView.swift */; };
 		SPCHFRMWK001SPCHFRMWK_BF /* Speech.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = SPCHFRMWK001SPCHFRMWK_RF /* Speech.framework */; };
 		SPCHSVC001SPCHSVC001BLDF /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPCHSVC001SPCHSVC001STDY /* SpeechService.swift */; };
+		SUBJMG01SUBJMG01BLDF /* SubjectManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SUBJMG01SUBJMG01STDY /* SubjectManagementView.swift */; };
+		TIMRVM01TIMRVM001BLDF /* TimerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = TIMRVM01TIMRVM001STDY /* TimerViewModel.swift */; };
+		TIMRVW01TIMRVW001BLDF /* TimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TIMRVW01TIMRVW001STDY /* TimerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +76,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4CB1A398A1B54D06DBF6106F /* ImagePickerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImagePickerView.swift; sourceTree = "<group>"; };
 		A63CBD5A2FDBB2CF0086CC37 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A6A4F4C62FDB9EE10083B8D2 /* FinalProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinalProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6A4F4C92FDB9EE10083B8D2 /* FinalProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalProjectApp.swift; sourceTree = "<group>"; };
@@ -85,8 +88,21 @@
 		A6A4F4E12FDB9EE70083B8D2 /* FinalProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinalProjectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6A4F4E52FDB9EE70083B8D2 /* FinalProjectUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalProjectUITests.swift; sourceTree = "<group>"; };
 		A6A4F4E72FDB9EE70083B8D2 /* FinalProjectUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalProjectUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		B214289D510CA80D9EC1480E /* NoteScannerService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoteScannerService.swift; sourceTree = "<group>"; };
+		CREWSVC01CREWSVC01STDY /* CrewAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrewAIService.swift; sourceTree = "<group>"; };
+		CREWVW001CREWVW001STDY /* StudyCoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyCoachView.swift; sourceTree = "<group>"; };
+		FBAUTH01FBAUTH01FBSTDY /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		FBGSVC001FBGSVC001FBSTDY /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		FBSVC001FBSVC001FBSTDY /* FirebaseAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAuthService.swift; sourceTree = "<group>"; };
+		FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusCameraService.swift; sourceTree = "<group>"; };
+		FCANL001FCANL001STDY /* FocusAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusAnalyzer.swift; sourceTree = "<group>"; };
+		FCAVC001FCAVC001STDY /* FocusVoiceCoach.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusVoiceCoach.swift; sourceTree = "<group>"; };
+		FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSessionViewModel.swift; sourceTree = "<group>"; };
+		FCAVW001FCAVW001STDY /* FocusSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSessionView.swift; sourceTree = "<group>"; };
 		HLTHFRMWK001HLTHFRMWK_RF /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		HLTHSVC001HLTHSVC001STDY /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		NOTFSVC01NOTFSVC01STDY /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		QZRVW001QZRVW001STDY /* QuizReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizReviewView.swift; sourceTree = "<group>"; };
 		SCSTDY001SCSTDY001SCSTDY /* StudyTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyTheme.swift; sourceTree = "<group>"; };
 		SCSTDY002SCSTDY002SCSTDY /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		SCSTDY004SCSTDY004SCSTDY /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
@@ -108,21 +124,9 @@
 		SCSTDY026SCSTDY026SCSTDY /* FlashcardReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardReviewView.swift; sourceTree = "<group>"; };
 		SPCHFRMWK001SPCHFRMWK_RF /* Speech.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Speech.framework; path = System/Library/Frameworks/Speech.framework; sourceTree = SDKROOT; };
 		SPCHSVC001SPCHSVC001STDY /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
-		FBSVC001FBSVC001FBSTDY /* FirebaseAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAuthService.swift; sourceTree = "<group>"; };
-		FBAUTH01FBAUTH01FBSTDY /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
-		FBGSVC001FBGSVC001FBSTDY /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		NOTFSVC01NOTFSVC01STDY /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
-		CREWSVC01CREWSVC01STDY /* CrewAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrewAIService.swift; sourceTree = "<group>"; };
-		CREWVW001CREWVW001STDY /* StudyCoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyCoachView.swift; sourceTree = "<group>"; };
-		FCAVC001FCAVC001STDY /* FocusVoiceCoach.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusVoiceCoach.swift; sourceTree = "<group>"; };
-		FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusCameraService.swift; sourceTree = "<group>"; };
-		FCANL001FCANL001STDY /* FocusAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusAnalyzer.swift; sourceTree = "<group>"; };
-		FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSessionViewModel.swift; sourceTree = "<group>"; };
-		FCAVW001FCAVW001STDY /* FocusSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSessionView.swift; sourceTree = "<group>"; };
+		SUBJMG01SUBJMG01STDY /* SubjectManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectManagementView.swift; sourceTree = "<group>"; };
 		TIMRVM01TIMRVM001STDY /* TimerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerViewModel.swift; sourceTree = "<group>"; };
 		TIMRVW01TIMRVW001STDY /* TimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerView.swift; sourceTree = "<group>"; };
-		QZRVW001QZRVW001STDY /* QuizReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizReviewView.swift; sourceTree = "<group>"; };
-		SUBJMG01SUBJMG01STDY /* SubjectManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectManagementView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -236,6 +240,22 @@
 			path = Analytics;
 			sourceTree = "<group>";
 		};
+		GRP_AUTH_0000000000013 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				FBAUTH01FBAUTH01FBSTDY /* AuthView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		GRP_CREW_0000000000016 /* StudyCoach */ = {
+			isa = PBXGroup;
+			children = (
+				CREWVW001CREWVW001STDY /* StudyCoachView.swift */,
+			);
+			path = StudyCoach;
+			sourceTree = "<group>";
+		};
 		GRP_DASH_0000000000002 /* Dashboard */ = {
 			isa = PBXGroup;
 			children = (
@@ -251,6 +271,18 @@
 				SCSTDY020SCSTDY020SCSTDY /* DocumentAnalyzerViewModel.swift */,
 			);
 			path = DocumentAnalyzer;
+			sourceTree = "<group>";
+		};
+		GRP_FCAM_0000000000017 /* FocusCamera */ = {
+			isa = PBXGroup;
+			children = (
+				FCAVC001FCAVC001STDY /* FocusVoiceCoach.swift */,
+				FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */,
+				FCANL001FCANL001STDY /* FocusAnalyzer.swift */,
+				FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */,
+				FCAVW001FCAVW001STDY /* FocusSessionView.swift */,
+			);
+			path = FocusCamera;
 			sourceTree = "<group>";
 		};
 		GRP_FEAT_0000000000001 /* Features */ = {
@@ -328,28 +360,18 @@
 				FBSVC001FBSVC001FBSTDY /* FirebaseAuthService.swift */,
 				NOTFSVC01NOTFSVC01STDY /* NotificationService.swift */,
 				CREWSVC01CREWSVC01STDY /* CrewAIService.swift */,
+				B214289D510CA80D9EC1480E /* NoteScannerService.swift */,
+				4CB1A398A1B54D06DBF6106F /* ImagePickerView.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
 		};
-		GRP_CREW_0000000000016 /* StudyCoach */ = {
+		GRP_THEM_0000000000012 /* Theme */ = {
 			isa = PBXGroup;
 			children = (
-				CREWVW001CREWVW001STDY /* StudyCoachView.swift */,
+				SCSTDY001SCSTDY001SCSTDY /* StudyTheme.swift */,
 			);
-			path = StudyCoach;
-			sourceTree = "<group>";
-		};
-		GRP_FCAM_0000000000017 /* FocusCamera */ = {
-			isa = PBXGroup;
-			children = (
-				FCAVC001FCAVC001STDY /* FocusVoiceCoach.swift */,
-				FCAMSVC01FCAMSVC01STDY /* FocusCameraService.swift */,
-				FCANL001FCANL001STDY /* FocusAnalyzer.swift */,
-				FCAVML01FCAVML01STDY /* FocusSessionViewModel.swift */,
-				FCAVW001FCAVW001STDY /* FocusSessionView.swift */,
-			);
-			path = FocusCamera;
+			path = Theme;
 			sourceTree = "<group>";
 		};
 		GRP_TIMR_0000000000014 /* Timer */ = {
@@ -359,22 +381,6 @@
 				TIMRVW01TIMRVW001STDY /* TimerView.swift */,
 			);
 			path = Timer;
-			sourceTree = "<group>";
-		};
-		GRP_AUTH_0000000000013 /* Auth */ = {
-			isa = PBXGroup;
-			children = (
-				FBAUTH01FBAUTH01FBSTDY /* AuthView.swift */,
-			);
-			path = Auth;
-			sourceTree = "<group>";
-		};
-		GRP_THEM_0000000000012 /* Theme */ = {
-			isa = PBXGroup;
-			children = (
-				SCSTDY001SCSTDY001SCSTDY /* StudyTheme.swift */,
-			);
-			path = Theme;
 			sourceTree = "<group>";
 		};
 		GRP_TUTO_0000000000003 /* AITutor */ = {
@@ -562,6 +568,8 @@
 				FCANL001FCANL001BLDF /* FocusAnalyzer.swift in Sources */,
 				FCAVML01FCAVML01BLDF /* FocusSessionViewModel.swift in Sources */,
 				FCAVW001FCAVW001BLDF /* FocusSessionView.swift in Sources */,
+				7BFE355E423BCA41BEA0C120 /* NoteScannerService.swift in Sources */,
+				AC347A1D08AA5FD7C88E351E /* ImagePickerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
