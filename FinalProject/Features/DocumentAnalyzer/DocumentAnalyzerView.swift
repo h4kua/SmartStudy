@@ -105,43 +105,48 @@ struct DocumentAnalyzerView: View {
             VStack(spacing: StudySpacing.large) {
                 pageHeader(subtitle: "Analyze your study materials")
 
-                // Scan & Solve entry card
-                Button { showSolveSheet = true } label: {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(StudyTheme.warning.opacity(0.15))
-                                .frame(width: 44, height: 44)
-                            Image(systemName: "camera.circle.fill")
-                                .font(.system(size: 22))
-                                .foregroundStyle(StudyTheme.warning)
-                        }
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Scan & Solve")
-                                .font(StudyFont.subtitle)
-                                .foregroundStyle(StudyTheme.primaryText)
-                            Text("Photo a question from your textbook — AI solves it step by step")
+                // ── Import source row ─────────────────────────────────────
+                HStack(spacing: StudySpacing.small) {
+                    // Scan Notes
+                    Button { vm.showScanMenu = true } label: {
+                        if vm.isScanning {
+                            HStack(spacing: 6) {
+                                ProgressView().scaleEffect(0.75).tint(StudyTheme.success)
+                                Text("Scanning…").font(StudyFont.caption)
+                            }
+                            .foregroundStyle(StudyTheme.success)
+                            .frame(maxWidth: .infinity).frame(height: 44)
+                            .background(StudyTheme.success.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        } else {
+                            Label("Scan", systemImage: "camera.viewfinder")
                                 .font(StudyFont.caption)
-                                .foregroundStyle(StudyTheme.secondaryText)
-                                .fixedSize(horizontal: false, vertical: true)
+                                .foregroundStyle(StudyTheme.success)
+                                .frame(maxWidth: .infinity).frame(height: 44)
+                                .background(StudyTheme.success.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                         }
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(StudyTheme.tertiaryText)
                     }
-                    .padding(StudySpacing.medium)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(StudyTheme.surface)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(StudyTheme.warning.opacity(0.4), lineWidth: 1.5)
-                            )
-                    )
+                    .disabled(vm.isScanning)
+
+                    // Import File
+                    Button { vm.showFilePicker = true } label: {
+                        Label("File", systemImage: "doc.fill")
+                            .font(StudyFont.caption)
+                            .foregroundStyle(StudyTheme.accent)
+                            .frame(maxWidth: .infinity).frame(height: 44)
+                            .background(StudyTheme.accentSoft, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+
+                    // Scan & Solve
+                    Button { showSolveSheet = true } label: {
+                        Label("Solve", systemImage: "camera.circle.fill")
+                            .font(StudyFont.caption)
+                            .foregroundStyle(StudyTheme.warning)
+                            .frame(maxWidth: .infinity).frame(height: 44)
+                            .background(StudyTheme.warning.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
                 }
 
-                // Title field
+                // ── Title field ───────────────────────────────────────────
                 VStack(alignment: .leading, spacing: StudySpacing.small) {
                     Text("Document Title")
                         .font(StudyFont.tiny)
@@ -159,7 +164,7 @@ struct DocumentAnalyzerView: View {
                         )
                 }
 
-                // Text editor
+                // ── Content editor ────────────────────────────────────────
                 VStack(alignment: .leading, spacing: StudySpacing.small) {
                     HStack(spacing: 6) {
                         Text("Content")
@@ -167,44 +172,28 @@ struct DocumentAnalyzerView: View {
                             .foregroundStyle(StudyTheme.secondaryText)
                             .tracking(0.8)
                         Spacer()
-                        Text("\(vm.wordCount) words")
-                            .font(StudyFont.tiny)
-                            .foregroundStyle(StudyTheme.tertiaryText)
-
-                        // ── Scan Notes button (NEW) ──────────────────────
-                        Button { vm.showScanMenu = true } label: {
-                            if vm.isScanning {
-                                HStack(spacing: 4) {
-                                    ProgressView().scaleEffect(0.7).tint(StudyTheme.success)
-                                    Text("Scanning…").font(StudyFont.tiny)
-                                }
-                                .foregroundStyle(StudyTheme.success)
-                                .padding(.horizontal, 8).padding(.vertical, 4)
-                                .background(StudyTheme.success.opacity(0.12), in: Capsule())
-                            } else {
-                                Label("Scan Notes", systemImage: "camera.viewfinder")
-                                    .font(StudyFont.tiny)
-                                    .foregroundStyle(StudyTheme.success)
-                                    .padding(.horizontal, 10).padding(.vertical, 4)
-                                    .background(StudyTheme.success.opacity(0.12), in: Capsule())
-                            }
-                        }
-                        .disabled(vm.isScanning)
-
-                        // ── Import File button ────────────────────────────
-                        Button { vm.showFilePicker = true } label: {
-                            Label("File", systemImage: "doc.fill")
+                        if vm.wordCount > 0 {
+                            Text("\(vm.wordCount) words")
                                 .font(StudyFont.tiny)
-                                .foregroundStyle(StudyTheme.accent)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
-                                .background(StudyTheme.accentSoft, in: Capsule())
+                                .foregroundStyle(StudyTheme.tertiaryText)
+                                .padding(.horizontal, 8).padding(.vertical, 3)
+                                .background(StudyTheme.surface2, in: Capsule())
+                        }
+                        if !vm.inputText.isEmpty {
+                            Button {
+                                vm.inputText = ""
+                                vm.documentTitle = ""
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(StudyTheme.tertiaryText)
+                            }
                         }
                     }
 
                     ZStack(alignment: .topLeading) {
                         if vm.inputText.isEmpty {
-                            Text("Paste your lecture notes, academic paper, or study material here...")
+                            Text("Paste your lecture notes, academic paper, or study material here…")
                                 .font(StudyFont.body)
                                 .foregroundStyle(StudyTheme.tertiaryText)
                                 .padding(.horizontal, 5)
@@ -213,7 +202,7 @@ struct DocumentAnalyzerView: View {
                         TextEditor(text: $vm.inputText)
                             .font(StudyFont.body)
                             .foregroundStyle(StudyTheme.primaryText)
-                            .frame(minHeight: 220)
+                            .frame(minHeight: 160, maxHeight: 300)
                             .scrollContentBackground(.hidden)
                     }
                     .padding(StudySpacing.medium)
@@ -225,42 +214,88 @@ struct DocumentAnalyzerView: View {
                     )
                 }
 
-                // Error message
+                // ── File import verification warning ──────────────────────
+                if vm.showFileImportWarning {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(StudyTheme.warning)
+                            .font(.system(size: 14))
+                            .padding(.top, 1)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Verify extracted text")
+                                .font(StudyFont.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(StudyTheme.primaryText)
+                            Text("Some PDFs extract text in wrong order (reversed characters). Scroll through the content above to confirm it looks correct before analyzing.")
+                                .font(StudyFont.tiny)
+                                .foregroundStyle(StudyTheme.secondaryText)
+                                .fixedSize(horizontal: false, vertical: true)
+                            if vm.canRescanWithOCR {
+                                Button {
+                                    Task { await vm.scanPDFWithOCR() }
+                                } label: {
+                                    if vm.isPDFOCRScanning {
+                                        HStack(spacing: 4) {
+                                            ProgressView().scaleEffect(0.65).tint(StudyTheme.warning)
+                                            Text("Scanning pages…")
+                                        }
+                                    } else {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "text.viewfinder")
+                                            Text("Re-scan with Vision OCR")
+                                        }
+                                    }
+                                }
+                                .font(StudyFont.tiny)
+                                .foregroundStyle(StudyTheme.warning)
+                                .disabled(vm.isPDFOCRScanning)
+                                .padding(.top, 2)
+                            }
+                        }
+                        Spacer()
+                        Button { vm.showFileImportWarning = false } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(StudyTheme.tertiaryText)
+                        }
+                    }
+                    .padding(StudySpacing.medium)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(StudyTheme.warning.opacity(0.1))
+                            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(StudyTheme.warning.opacity(0.35), lineWidth: 1))
+                    )
+                }
+
+                // ── Error ─────────────────────────────────────────────────
                 if let err = vm.errorMessage {
                     errorCard(err)
                 }
 
-                // My Notes quick-access
-                if !store.studyNotes.isEmpty {
-                    notesPreviewSection
-                }
-
-                // Analyze button
+                // ── Analyze button ────────────────────────────────────────
                 Button {
                     Task { await vm.analyze(store: store) }
                 } label: {
                     if vm.isAnalyzing {
                         HStack(spacing: StudySpacing.small) {
                             ProgressView().tint(.white)
-                            Text("Analyzing...")
+                            Text("Analyzing…")
                         }
                         .font(StudyFont.subtitle)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
+                        .frame(maxWidth: .infinity).frame(height: 52)
                     } else {
                         HStack(spacing: StudySpacing.small) {
                             Image(systemName: "doc.text.magnifyingglass")
                             Text("Analyze Document")
                                 .font(StudyFont.subtitle)
                         }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
+                        .frame(maxWidth: .infinity).frame(height: 52)
                     }
                 }
                 .buttonStyle(PrimaryStudyButtonStyle())
-                .disabled(vm.isAnalyzing || vm.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(vm.isAnalyzing || vm.isPDFOCRScanning || vm.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
-                featureHints
             }
             .padding(.horizontal, StudySpacing.large)
             .padding(.bottom, StudySpacing.xxLarge)
@@ -346,15 +381,18 @@ struct DocumentAnalyzerView: View {
                             .lineLimit(1)
                     }
                     Spacer()
-                    Button {
-                        withAnimation { vm.reset() }
-                    } label: {
-                        Label("New", systemImage: "plus")
-                            .font(StudyFont.caption)
-                            .foregroundStyle(StudyTheme.accent)
-                            .padding(.horizontal, 12).padding(.vertical, 6)
-                            .background(StudyTheme.accentSoft)
-                            .clipShape(Capsule())
+                    HStack(spacing: 10) {
+                        notesButton
+                        Button {
+                            withAnimation { vm.reset() }
+                        } label: {
+                            Label("New", systemImage: "plus")
+                                .font(StudyFont.caption)
+                                .foregroundStyle(StudyTheme.accent)
+                                .padding(.horizontal, 12).padding(.vertical, 6)
+                                .background(StudyTheme.accentSoft)
+                                .clipShape(Capsule())
+                        }
                     }
                 }
                 .padding(.top, StudySpacing.large)
@@ -670,8 +708,28 @@ struct DocumentAnalyzerView: View {
                     .foregroundStyle(StudyTheme.secondaryText)
             }
             Spacer()
+            notesButton
         }
         .padding(.top, StudySpacing.large)
+    }
+
+    private var notesButton: some View {
+        Button { showNotesSheet = true } label: {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: "note.text")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(StudyTheme.accent)
+                    .frame(width: 40, height: 40)
+                    .background(StudyTheme.accentSoft)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                if !store.studyNotes.isEmpty {
+                    Circle()
+                        .fill(StudyTheme.success)
+                        .frame(width: 10, height: 10)
+                        .offset(x: 2, y: -2)
+                }
+            }
+        }
     }
 
     private func settingRow<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
