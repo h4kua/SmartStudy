@@ -1,229 +1,207 @@
-# 🧠 AI Academic Mentor
+# SmartStudy — AI Academic Mentor
 
-> An intelligent iOS study companion powered by Groq (Llama 3 70B) and Firebase — built with SwiftUI, MVVM, HealthKit, and Speech Recognition.
-
----
-
-## 📱 Screenshots
-
-| Login | Home | AI Tutor |
-|---|---|---|
-| *Auth Screen* | *Dashboard* | *Chat* |
-
-| Timer | Quiz | Analytics |
-|---|---|---|
-| *Pomodoro* | *Review Mode* | *Progress* |
+> An intelligent iOS study companion powered by Groq (Llama 3.3 70B), CrewAI multi-agent backend, and on-device Vision OCR. Built with SwiftUI, MVVM, and real-time focus monitoring.
 
 ---
 
-## ✨ Features
+## Features
 
-### 🔐 Authentication (Firebase)
-- **Google Sign-In** — one-tap OAuth via Google
-- **Email / Password** — register or log in with email
-- **Phone OTP** — SMS verification with country code picker
-- **Anonymous / Guest** — explore without an account
-- Password reset via email
-
-### 🤖 AI Tutor (Groq × Llama 3 70B)
-- Real-time chat with an academic AI tutor
-- Voice input via **Speech Recognition** (`SFSpeechRecognizer`)
+### AI Tutor
+- Real-time academic chat powered by Groq Llama 3.3 70B
+- Concept explanation, homework help, math, and programming assistance
+- Maintains conversation context (last 6 messages)
+- Subject-aware system prompt injection
 - Suggestion chips for quick questions
-- Chat history with timestamps and text selection
-- Clear chat button
 
-### 📄 Document Analyzer
-- Import PDF files via iOS file picker (`PDFKit`)
-- AI-generated summary, key concepts, definitions, and study questions
-- Analyzed documents saved locally with full history
+### Smart Document Analyzer
+- Import PDF files, `.txt` files, or scan printed/handwritten notes with camera
+- AI-generated summary, key concepts, definitions, and suggested study questions
+- Automatic reversed-text repair for RTL PDFs (tokenization-based word scoring)
+- **Vision OCR fallback** for complex slide decks: renders each page to image and runs VNRecognizeTextRequest — produces correct reading order regardless of PDF internal structure
+- 4 pages processed concurrently for fast scanning
+- Save analyzed content as Study Notes with quiz/flashcard generation
 
-### 📝 Quiz Generator
-- AI-generated multiple-choice quizzes from any topic
-- Configurable difficulty (Beginner / Intermediate / Advanced)
-- Configurable question count (5 / 10 / 15)
-- Haptic feedback on correct / wrong answers
-- **Full Review Mode** — expandable cards with A/B/C/D options, color coding, and explanations
+### AI Quiz Generator
+- Multiple-choice quizzes from any topic or imported document
+- Difficulty: Beginner / Intermediate / Advanced
+- Question count: 5 / 10 / 15 with per-question countdown timer
+- Haptic feedback, full review mode with explanations
+- **Exam Mode**: timed exam with anti-cheat detection (monitors app switching)
+- AI debrief after exam submission
 
-### 🃏 Flashcard System
-- AI-generated flashcard decks with front, back, category, and difficulty
-- Flip animation (3D rotation effect)
-- **Swipe to review** — right = knew it ✅, left = didn't know ❌
-- Mastery score and session complete screen
+### Flashcard System
+- AI-generated decks from any topic
+- 3D flip animation, swipe-to-review (knew it / didn't know)
+- Mastery percentage per deck
 
-### ⏱ Pomodoro Study Timer
-- 25-min Focus → 5-min Short Break → 15-min Long Break cycle
-- Animated circular progress ring with phase-specific colors
-- 4-dot cycle indicator
-- Play / Pause / Reset / Skip controls
-- Push notification when each session ends
+### Focus Camera Session
+- Real-time attention monitoring using front camera + Vision face detection
+- Tracks focus time, distraction events, and focus percentage
+- Voice coach feedback (toggleable): "Stay focused!", "Welcome back!"
+- Session summary on completion
 
-### 🔔 Push Notifications
-- Daily study reminder with custom time picker
-- Pomodoro session completion alert
-- Streak achievement notification
-- Toggle on/off from Settings
+### Daily Coach (Multi-Agent AI)
+- **Daily Coach**: personalized today's action plan — study tasks with subject, time estimate, and reason
+- **Weekly Plan**: full 7-day study schedule
+- **Performance Review**: AI analysis of quiz history with improvement tips
+- Powered by CrewAI multi-agent backend (Python FastAPI)
+- Dashboard shows today's top 3 actions at a glance
 
-### 📊 Analytics & Progress
-- Weekly activity bar chart with animation
-- Quiz stats: total, average score, best score, streak
-- HealthKit integration: step count and sleep hours
-- Recent quiz history list
+### Pomodoro Timer
+- 25-min Focus → 5-min Short Break → 15-min Long Break
+- Animated circular progress ring
+- Push notification on session end
 
-### ⚙️ Settings
-- **Subject Management** — add, edit, delete subjects with color and emoji picker
-- Firebase user info (email / guest mode badge)
-- AI configuration status (Groq model info)
-- Sign out / clear all data
+### Learning Analytics
+- Weekly activity bar chart
+- Quiz score trends and streak tracking
+- Flashcard mastery overview
+- HealthKit integration (step count, sleep hours)
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ```
-FinalProject/
-├── FinalProjectApp.swift          # App entry, Firebase configure, AppDelegate
-├── MainTabView.swift              # Tab bar (Home / Tutor / Documents / Learn / Progress)
+SmartStudy/
+├── FinalProjectApp.swift          — @main, Firebase configure, LearningStore injection
+├── MainTabView.swift              — 5-tab navigation
 │
 ├── Features/
-│   ├── Auth/
-│   │   └── AuthView.swift         # Login: Google, Email, Phone, Anonymous
-│   ├── Dashboard/
-│   │   └── DashboardView.swift    # Hero banner, quick actions, recent activity
-│   ├── AITutor/
-│   │   ├── AITutorView.swift
-│   │   └── AITutorViewModel.swift
-│   ├── DocumentAnalyzer/
-│   │   ├── DocumentAnalyzerView.swift
-│   │   └── DocumentAnalyzerViewModel.swift
+│   ├── Dashboard/                 — Hero, quick actions, Daily Coach widget
+│   ├── AITutor/                   — Chat UI + ViewModel
+│   ├── DocumentAnalyzer/          — PDF import, Vision OCR, notes, Scan & Solve
 │   ├── Learn/
-│   │   ├── LearnHubView.swift     # Segmented: Quizzes | Flashcards | Timer
-│   │   ├── Quiz/
-│   │   │   ├── QuizView.swift
-│   │   │   ├── QuizSessionView.swift
-│   │   │   ├── QuizViewModel.swift
-│   │   │   └── QuizReviewView.swift   # Expandable answer review
-│   │   └── Flashcards/
-│   │       ├── FlashcardsView.swift
-│   │       ├── FlashcardReviewView.swift
-│   │       └── FlashcardsViewModel.swift
-│   ├── Timer/
-│   │   ├── TimerView.swift        # Pomodoro UI
-│   │   └── TimerViewModel.swift   # Combine-based timer logic
+│   │   ├── Quiz/                  — Quiz, ExamMode, Review
+│   │   └── Flashcards/            — Deck list, flip review
+│   ├── Timer/                     — Pomodoro
+│   ├── StudyCoach/                — Daily Coach / Weekly Plan / Performance Review
+│   ├── FocusCamera/               — AVCapture + Vision face detection
 │   ├── Analytics/
-│   │   └── AnalyticsView.swift
 │   └── Settings/
-│       ├── SettingsView.swift
-│       └── SubjectManagementView.swift
 │
 ├── Services/
-│   ├── GroqService.swift          # Groq API: chat, quiz gen, flashcard gen, doc analysis
-│   ├── FirebaseAuthService.swift  # Firebase Auth singleton (all 4 providers)
-│   ├── NotificationService.swift  # UNUserNotificationCenter wrapper
-│   ├── LearningStore.swift        # @MainActor ObservableObject, UserDefaults persistence
-│   ├── HealthKitService.swift     # Steps + sleep data
-│   └── SpeechService.swift        # SFSpeechRecognizer wrapper
-│
-├── Models/
-│   └── Models.swift               # Subject, ChatMessage, QuizQuestion, QuizSession,
-│                                  #   Flashcard, FlashcardDeck, AnalyzedDocument
+│   ├── GroqService.swift          — Groq API via backend proxy
+│   ├── CrewAIService.swift        — CrewAI backend endpoints
+│   ├── LearningStore.swift        — State management + UserDefaults persistence
+│   ├── NoteScannerService.swift   — Vision OCR on-device
+│   └── ...
 │
 └── Theme/
-    └── StudyTheme.swift           # Aurora color system, fonts, spacing, components
+    └── StudyTheme.swift           — Colors, fonts, spacing, components
+
+crew_backend/                      — Python FastAPI + CrewAI
+├── main.py                        — Endpoints: /groq/completions, /study/*
+├── crew.py                        — CrewAI agent definitions
+└── requirements.txt
 ```
 
 **Pattern:** MVVM + `@EnvironmentObject` dependency injection
-**Concurrency:** `async/await` throughout, `@MainActor` on all ViewModels and Services
+**Concurrency:** `async/await` throughout, `@MainActor` on all ViewModels
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
 | UI Framework | SwiftUI |
 | Architecture | MVVM |
 | AI / LLM | Groq API — `llama-3.3-70b-versatile` |
-| Authentication | Firebase Auth (Google, Email, Phone, Anonymous) |
-| Speech Input | `SFSpeechRecognizer` + `AVAudioEngine` |
-| PDF Processing | `PDFKit` |
-| Health Data | `HealthKit` |
-| Notifications | `UserNotifications` |
-| Persistence | `UserDefaults` + `JSONEncoder/Decoder` |
-| Timer | `Combine` — `Timer.publish` |
-| Animations | SwiftUI spring + `matchedGeometryEffect` |
-| Haptics | `UIImpactFeedbackGenerator` + `UINotificationFeedbackGenerator` |
+| Multi-Agent AI | CrewAI 0.80.0 (Python) |
+| Backend | FastAPI + uvicorn |
+| Authentication | Firebase Auth (Email/Password) |
+| PDF Processing | PDFKit + Vision OCR fallback |
+| Computer Vision | Vision framework (VNRecognizeTextRequest, VNDetectFaceRectanglesRequest) |
+| Camera | AVFoundation (AVCaptureSession) |
+| Health Data | HealthKit |
+| Notifications | UserNotifications |
+| Persistence | UserDefaults + JSONEncoder/Decoder |
+| TTS | AVSpeechSynthesizer |
+| Haptics | UIImpactFeedbackGenerator |
+| Animations | SwiftUI spring + matchedGeometryEffect |
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
-- Xcode 14.3+
-- iOS 16.0+ target
-- A [Groq API key](https://console.groq.com/keys) (free tier available)
-- A Firebase project with Authentication enabled
+- Xcode 15+
+- iOS 16.4+ simulator or physical iPhone
+- Python 3.11+
+- [Groq API key](https://console.groq.com/keys) (free tier available)
 
-### 1. Clone the repo
+### 1. Clone
 ```bash
 git clone https://github.com/h4kua/SmartStudy.git
 cd SmartStudy
 ```
 
-### 2. Open in Xcode
+### 2. Start the Python backend
+```bash
+cd crew_backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Create `crew_backend/.env`:
+```
+GROQ_API_KEY=gsk_your_key_here
+```
+
+```bash
+./start.sh
+```
+
+### 3. Open in Xcode
 ```bash
 open FinalProject.xcodeproj
 ```
-Xcode will automatically resolve Swift Package dependencies (Firebase, GoogleSignIn).
 
-### 3. Add your Groq API key
-```
-Xcode → Product → Scheme → Edit Scheme (⌘⇧,)
-  → Run → Arguments → Environment Variables
-  → Add: GROQ_API_KEY = gsk_YOUR_KEY_HERE
-```
+### 4. Run
+Select iPhone 16 simulator and press **⌘R**.
 
-### 4. Firebase setup
-- Add your own `GoogleService-Info.plist` from the [Firebase Console](https://console.firebase.google.com)
-- Enable these Auth providers: **Email/Password**, **Phone**, **Google**, **Anonymous**
-
-### 5. Run
-Select an iPhone 15 simulator (or real device) and press **⌘R**.
+The iOS app routes all AI calls through `http://localhost:8000` (simulator) or `http://10.24.162.130:8000` (physical device — update IP in `CrewAIService.swift`).
 
 ---
 
-## 🔑 Environment Variables
+## Environment Variables
 
-| Key | Required | Description |
+| Key | Where | Description |
 |---|---|---|
-| `GROQ_API_KEY` | ✅ | Your Groq API key — set in Xcode scheme only, never commit |
+| `GROQ_API_KEY` | `crew_backend/.env` | Your Groq key — never commit |
 
-> `GoogleService-Info.plist` is the standard Firebase client config — safe to include in the bundle.
+The Xcode scheme has `GROQ_API_KEY = ""` (empty) intentionally. The app never uses the key directly — all LLM calls go through the local FastAPI proxy which reads the key from `.env`.
+
+> `GoogleService-Info.plist` is excluded from the repo — add your own from the [Firebase Console](https://console.firebase.google.com).
 
 ---
 
-## 📋 Requirements Coverage
+## Requirements Coverage
 
 | Requirement | Implementation |
 |---|---|
 | SwiftUI UI | All screens built with SwiftUI |
-| MVVM Pattern | `ObservableObject` ViewModels, `@EnvironmentObject` injection |
-| Networking / API | Groq REST API with `async/await` + `URLSession` |
-| Firebase | Auth (4 providers) + `FirebaseApp.configure()` |
+| MVVM Pattern | `@MainActor ObservableObject` ViewModels, `@EnvironmentObject` injection |
+| Networking / API | Groq REST API via FastAPI proxy — `async/await` + `URLSession` |
 | Local Persistence | `UserDefaults` + `JSONEncoder` via `LearningStore` |
-| Device API | HealthKit, Speech Recognition, Push Notifications |
-| File Handling | PDF import via `UIDocumentPickerViewController` |
-| Animations | Spring, `matchedGeometryEffect`, `contentTransition` |
-| Error Handling | All async calls wrapped in `do/catch` with user-friendly messages |
+| Device APIs | Vision, AVFoundation, HealthKit, Speech, Notifications, PDFKit |
+| File Handling | PDF + TXT import via `UIDocumentPickerViewController` |
+| Animations | Spring transitions, `matchedGeometryEffect`, 3D card flip |
+| Error Handling | All async calls in `do/catch` with user-facing error cards |
+| Multi-Agent AI | CrewAI backend with 3 crews (DailyCoach, WeeklyPlan, PerformanceReview) |
+| On-Device ML | Vision OCR + face detection (no data leaves device) |
 
 ---
 
-## 👤 Developer
+## Developer
 
 **Juan** — iOS Application Development
 Deadline: July 1, 2026
 
 ---
 
-## 📄 License
+## License
 
 This project is for academic purposes only.
