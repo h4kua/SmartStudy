@@ -3,7 +3,6 @@ import Foundation
 // MARK: - GroqError
 
 enum GroqError: LocalizedError {
-    case missingAPIKey
     case httpError(Int)
     case invalidResponse
     case emptyResponse
@@ -11,12 +10,10 @@ enum GroqError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .missingAPIKey:
-            return "GROQ_API_KEY is not set. Add it in Xcode: Edit Scheme → Run → Environment Variables."
         case .httpError(let code):
-            return "AI service returned HTTP \(code). Check your API key and try again."
+            return "AI service error (HTTP \(code)). Check GROQ_API_KEY in crew_backend/.env and restart the server."
         case .invalidResponse:
-            return "Could not parse the AI response. Please try again."
+            return "Cannot reach the backend server. Make sure crew_backend is running (./start.sh)."
         case .emptyResponse:
             return "The AI returned an empty response."
         case .parseError(let detail):
@@ -34,17 +31,13 @@ final class GroqService {
     static let shared = GroqService()
     private init() {}
 
-    private let endpoint  = URL(string: "https://api.groq.com/openai/v1/chat/completions")!
-    private let modelID   = "llama-3.3-70b-versatile"
-
-    /// Reuse decoders — creating them is surprisingly expensive.
+    private let modelID = "llama-3.3-70b-versatile"
     private let decoder = JSONDecoder()
 
-    /// Maximum automatic retries for transient network errors (timeout, 429, 5xx).
-    private let maxRetries = 2
-
-    private var apiKey: String {
-        ProcessInfo.processInfo.environment["GROQ_API_KEY"] ?? ""
+    /// All Groq calls go through the backend proxy so the API key
+    /// never needs to be in the Xcode scheme (works on physical devices too).
+    private var backendEndpoint: URL {
+        URL(string: "\(BackendConfig.baseURL)/groq/completions")!
     }
 
     // =========================================================
@@ -128,29 +121,47 @@ final class GroqService {
     ///   - topic: Topic or text to generate questions about.
     ///   - difficulty: Difficulty level for the questions.
     ///   - count: Number of questions to generate (5, 10, or 15).
+    /// - parameter context: Optional raw text from a saved note. When provided, ALL questions
+    ///   are generated exclusively from this source material — not from general AI knowledge.
     func generateQuiz(topic: String,
                       difficulty: QuizQuestion.Difficulty,
-                      count: Int) async throws -> [QuizQuestion] {
+                      count: Int,
+                      context: String? = nil) async throws -> [QuizQuestion] {
+
+        let contextNote = context.map { c in
+            "\n\nSOURCE MATERIAL — base every question on this content only:\n\(c.prefix(3500))"
+        } ?? ""
 
         let system = """
-        You are an expert academic quiz creator.
+        You are an expert academic quiz creator. \
         Generate exactly \(count) multiple-choice questions about the topic below.
+        \(context != nil ? "IMPORTANT: Generate questions ONLY from the provided source material, not from outside knowledge." : "")
         Respond with a single valid JSON array — no extra text, no markdown, no code fences.
         Each item must follow this exact shape:
         {
           "question": "<question text>",
           "options": ["<option A>", "<option B>", "<option C>", "<option D>"],
           "correctIndex": <0|1|2|3>,
-          "explanation": "<why this answer is correct>"
+          "explanation": "<comprehensive explanation>"
         }
-        Difficulty: \(difficulty.label). Make questions clear and unambiguous.
-        correctIndex is the 0-based index of the correct option inside the options array.
+        Difficulty: \(difficulty.label).
+        EXPLANATION REQUIREMENTS — include ALL three parts in every explanation:
+        1. WHY the correct answer is right (with specific facts or reasoning).
+        2. WHY each wrong option is incorrect (brief but clear).
+        3. A memory tip or real-world application of this concept.
+        Explanations must be at least 3 sentences and genuinely educational.
+        ANSWER RULES:
+        - correctIndex is the 0-based index of the correct option inside options.
+        - Always provide exactly 4 options per question.
+        - Double-check correctIndex points to the ACTUALLY correct option.
+        - Vary the position of the correct answer — do NOT always put it at index 0.
+        - Make wrong options plausible but clearly incorrect upon reflection.
         """
 
         let raw  = try await rawRequest(messages: [
             ["role": "system", "content": system],
-            ["role": "user",   "content": "Topic: \(topic)"]
-        ], maxTokens: count * 230, temperature: 0.5)
+            ["role": "user",   "content": "Topic: \(topic)\(contextNote)"]
+        ], maxTokens: count * 320, temperature: 0.5)
 
         let json = stripCodeFences(raw)
         guard let data = json.data(using: .utf8) else { throw GroqError.invalidResponse }
@@ -164,11 +175,14 @@ final class GroqService {
 
         do {
             let dtos = try decoder.decode([DTO].self, from: data)
-            return dtos.prefix(count).map { dto in
-                QuizQuestion(
+            return dtos.prefix(count).compactMap { dto in
+                let opts = dto.options.isEmpty ? ["A", "B", "C", "D"] : dto.options
+                guard !opts.isEmpty else { return nil }
+                let safeIndex = max(0, min(opts.count - 1, dto.correctIndex))
+                return QuizQuestion(
                     question: dto.question,
-                    options: dto.options,
-                    correctIndex: max(0, min(3, dto.correctIndex)),
+                    options: opts,
+                    correctIndex: safeIndex,
                     explanation: dto.explanation,
                     difficulty: difficulty
                 )
@@ -232,14 +246,84 @@ final class GroqService {
     }
 
     // =========================================================
+    // MARK: - 5. Exam Debrief
+    // =========================================================
+
+    /// Generates a personalised post-exam analysis based on wrong answers.
+    func generateExamDebrief(topic: String, wrongQuestions: [(question: String, correct: String, chosen: String)]) async throws -> String {
+        guard !wrongQuestions.isEmpty else {
+            return "Perfect score! You answered every question correctly. Outstanding mastery of \(topic)."
+        }
+
+        let wrongSummary = wrongQuestions.enumerated().map { i, w in
+            "\(i + 1). Question: \(w.question)\n   Correct answer: \(w.correct)\n   Your answer: \(w.chosen)"
+        }.joined(separator: "\n\n")
+
+        let system = """
+        You are an expert academic coach providing a post-exam debrief.
+        Be direct, specific, and encouraging. Keep your response under 300 words.
+        Structure your response with these plain-text sections (no emojis):
+        Performance Summary
+        Key Gaps Identified
+        Priority Topics to Review
+        Study Recommendations
+        """
+
+        let userMsg = """
+        Exam topic: \(topic)
+        Wrong answers (\(wrongQuestions.count) out of total):
+
+        \(wrongSummary)
+
+        Please analyse these mistakes and give me a personalised study plan.
+        """
+
+        return try await rawRequest(messages: [
+            ["role": "system", "content": system],
+            ["role": "user",   "content": userMsg]
+        ], maxTokens: 500, temperature: 0.6)
+    }
+
+    // =========================================================
+    // MARK: - 6. Solve Problem from Scanned Text
+    // =========================================================
+
+    /// Sends OCR'd text from a photo to Groq and returns a step-by-step solution.
+    func solveProblem(_ text: String) async throws -> String {
+        let system = """
+        You are an expert academic tutor. The student has photographed a question or problem from their textbook or exam paper.
+        Analyze the scanned text and provide a complete, educational solution.
+
+        Structure your response with these exact section headers:
+
+        Understanding
+        [1-2 sentences: what the problem is asking]
+
+        Solution
+        [Numbered step-by-step working — show every step clearly]
+
+        Answer
+        [The clear, concise final answer]
+
+        Key Concept
+        [The main formula, theorem, or concept used — 1-2 sentences]
+
+        Be thorough and educational. If the scanned text is incomplete or unclear, work with what is available and note any assumptions.
+        Do not use markdown symbols (* # ` etc) except for the section headers above.
+        """
+        return try await rawRequest(messages: [
+            ["role": "system", "content": system],
+            ["role": "user",   "content": "Please solve this problem:\n\n\(text)"]
+        ], maxTokens: 1000, temperature: 0.2)
+    }
+
+    // =========================================================
     // MARK: - Private helpers
     // =========================================================
 
     private func rawRequest(messages: [[String: String]],
                             maxTokens: Int,
                             temperature: Double) async throws -> String {
-        guard !apiKey.isEmpty else { throw GroqError.missingAPIKey }
-
         let body: [String: Any] = [
             "model":       modelID,
             "messages":    messages,
@@ -247,20 +331,17 @@ final class GroqService {
             "temperature": temperature
         ]
 
-        var req = URLRequest(url: endpoint)
+        var req = URLRequest(url: backendEndpoint)
         req.httpMethod = "POST"
-        req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
-        req.timeoutInterval = 45
+        req.timeoutInterval = 60  // extra headroom for backend proxy hop
 
-        // Retry loop for transient errors (429 rate-limit, 5xx server, timeout)
+        // One retry for transient 429 / 5xx errors
         var lastError: Error?
-        for attempt in 0...maxRetries {
+        for attempt in 0...1 {
             if attempt > 0 {
-                // Exponential backoff: 1s, 2s
-                let delay = UInt64(attempt) * 1_000_000_000
-                try? await Task.sleep(nanoseconds: delay)
+                try? await Task.sleep(nanoseconds: 2_000_000_000)  // 2s backoff
             }
 
             do {
@@ -268,11 +349,9 @@ final class GroqService {
 
                 if let http = response as? HTTPURLResponse, http.statusCode != 200 {
                     let responseBody = String(data: data, encoding: .utf8) ?? "no body"
-                    print("❌ Groq HTTP \(http.statusCode) (attempt \(attempt + 1)): \(responseBody)")
-
-                    // Retry on rate-limit or server errors; give up on 4xx client errors
+                    print("❌ Backend/Groq HTTP \(http.statusCode) (attempt \(attempt + 1)): \(responseBody)")
                     let retryable = http.statusCode == 429 || http.statusCode >= 500
-                    if retryable && attempt < maxRetries {
+                    if retryable && attempt == 0 {
                         lastError = GroqError.httpError(http.statusCode)
                         continue
                     }
@@ -290,10 +369,9 @@ final class GroqService {
             } catch is CancellationError {
                 throw CancellationError()
             } catch {
-                // URLSession timeout / network error → retry
-                lastError = error
-                if attempt < maxRetries { continue }
-                throw error
+                // Network error (backend offline)
+                lastError = GroqError.invalidResponse
+                if attempt == 0 { continue }
             }
         }
         throw lastError ?? GroqError.invalidResponse
@@ -302,7 +380,7 @@ final class GroqService {
     /// Decodes the Groq chat completion response.
     private struct GroqResponse: Codable {
         struct Choice: Codable {
-            struct Message: Codable { let content: String }
+            struct Message: Codable { let content: String? }
             let message: Message
         }
         let choices: [Choice]

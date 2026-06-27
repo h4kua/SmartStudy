@@ -48,43 +48,54 @@ struct QuizReviewView: View {
     // MARK: - Summary Bar
 
     private var summaryBar: some View {
-        HStack(spacing: StudySpacing.medium) {
-            summaryChip(
-                value: "\(session.score)/\(session.totalQuestions)",
-                label: "Correct",
-                color: StudyTheme.success
-            )
-            summaryChip(
-                value: session.percentage.percentString,
-                label: "Score",
-                color: session.gradeColor
-            )
-            summaryChip(
-                value: session.difficulty.label,
-                label: "Level",
-                color: session.difficulty.color
+        VStack(spacing: StudySpacing.medium) {
+            // Main score card
+            HStack(alignment: .center, spacing: 0) {
+                // Left: big percentage + count
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(session.percentage.percentString)
+                        .font(.system(size: 52, weight: .black, design: .rounded))
+                        .foregroundStyle(session.gradeColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    Text("\(session.score) of \(session.totalQuestions) correct")
+                        .font(StudyFont.caption)
+                        .foregroundStyle(StudyTheme.secondaryText)
+                }
+
+                Spacer()
+
+                // Right: grade label + difficulty badge
+                VStack(alignment: .trailing, spacing: 10) {
+                    Text(session.gradeLabel)
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundStyle(session.gradeColor)
+
+                    Text(session.difficulty.label.uppercased())
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .tracking(0.6)
+                        .foregroundStyle(session.difficulty.color)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
+                        .background(
+                            Capsule()
+                                .fill(session.difficulty.color.opacity(0.15))
+                                .overlay(Capsule().stroke(session.difficulty.color.opacity(0.45), lineWidth: 1))
+                        )
+                }
+            }
+            .padding(.horizontal, StudySpacing.medium)
+            .padding(.vertical, StudySpacing.medium)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(session.gradeColor.opacity(0.06))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(session.gradeColor.opacity(0.2), lineWidth: 1.5)
+                    )
             )
         }
         .padding(.top, 4)
-    }
-
-    private func summaryChip(value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 2) {
-            Text(value)
-                .font(.system(size: 18, weight: .black, design: .rounded))
-                .foregroundStyle(color)
-            Text(label)
-                .font(StudyFont.tiny)
-                .foregroundStyle(StudyTheme.secondaryText)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, StudySpacing.small)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(color.opacity(0.10))
-                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(color.opacity(0.25), lineWidth: 1))
-        )
     }
 
     // MARK: - Question Card

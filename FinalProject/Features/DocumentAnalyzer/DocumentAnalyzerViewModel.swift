@@ -85,13 +85,14 @@ final class DocumentAnalyzerViewModel: ObservableObject {
         isGeneratingQuiz = true
         errorMessage     = nil
 
-        let topic = "\(doc.title). \(doc.summary). Key concepts: \(doc.keyConcepts.prefix(5).joined(separator: ", "))"
+        let topic = doc.title
 
         do {
             let questions = try await GroqService.shared.generateQuiz(
                 topic: topic,
                 difficulty: quizDifficulty,
-                count: quizCount
+                count: quizCount,
+                context: doc.originalText.isEmpty ? nil : doc.originalText
             )
             guard !questions.isEmpty else { throw GroqError.emptyResponse }
 
@@ -196,6 +197,20 @@ final class DocumentAnalyzerViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Save as Note
+
+    func saveAsNote(store: LearningStore) {
+        guard let doc = result else { return }
+        let note = StudyNote(
+            title:   doc.title,
+            content: doc.originalText,
+            subject: doc.subject,
+            pageCount: 1
+        )
+        store.addStudyNote(note)
+        bannerMessage = "Saved as note — view it in My Notes."
+    }
+
     // MARK: - Reset
 
     func reset() {
@@ -205,5 +220,54 @@ final class DocumentAnalyzerViewModel: ObservableObject {
         errorMessage    = nil
         bannerMessage   = nil
         showGenerateSheet = false
+    }
+}
+
+// MARK: - SolveProblemViewModel
+
+/// ViewModel for the Scan & Solve feature.
+/// User photographs a physical problem → on-device OCR → Groq solves step-by-step.
+@MainActor
+final class SolveProblemViewModel: ObservableObject {
+
+    @Published var capturedImage: UIImage?
+    @Published var detectedText:  String = ""
+    @Published var answer:        String?
+    @Published var isScanning:    Bool = false
+    @Published var isSolving:     Bool = false
+    @Published var errorMessage:  String?
+    @Published var showImagePicker: Bool = false
+    @Published var sourceType: UIImagePickerController.SourceType = .camera
+
+    func scanAndSolve(_ image: UIImage) async {
+        capturedImage = image
+        detectedText  = ""
+        answer        = nil
+        errorMessage  = nil
+        isScanning    = true
+
+        do {
+            let text = try await NoteScannerService.recognizeText(from: image)
+            detectedText = text
+            isScanning   = false
+            isSolving    = true
+            answer = try await GroqService.shared.solveProblem(text)
+        } catch let e as NoteScannerService.ScanError {
+            errorMessage = e.errorDescription
+        } catch let e as GroqError {
+            errorMessage = e.errorDescription
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isScanning = false
+        isSolving  = false
+    }
+
+    func reset() {
+        capturedImage = nil
+        detectedText  = ""
+        answer        = nil
+        errorMessage  = nil
     }
 }

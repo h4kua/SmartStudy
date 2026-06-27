@@ -90,7 +90,7 @@ struct SettingsView: View {
                     Image(systemName: user.isAnonymous ? "person.fill.questionmark" : "checkmark.seal.fill")
                         .font(.system(size: 11))
                         .foregroundStyle(user.isAnonymous ? StudyTheme.warning : StudyTheme.success)
-                    Text(user.isAnonymous ? "Guest Account" : (user.email))
+                    Text(user.isAnonymous ? "Guest Account" : (user.email.isEmpty ? "Signed In" : user.email))
                         .font(StudyFont.tiny)
                         .foregroundStyle(StudyTheme.secondaryText)
                         .lineLimit(1)

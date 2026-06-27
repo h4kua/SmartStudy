@@ -1,0 +1,156 @@
+[
+  {
+    "id": "ai-tutor",
+    "name": "AI Tutor",
+    "tab": "Tutor",
+    "status": "complete",
+    "description": "Conversational AI academic assistant. Maintains last-6-message context window, injects active subject into system prompt.",
+    "files": [
+      "FinalProject/Features/AITutor/AITutorView.swift",
+      "FinalProject/Features/AITutor/AITutorViewModel.swift"
+    ],
+    "services": ["GroqService.shared.chat(messages:)"],
+    "model": "llama-3.3-70b-versatile",
+    "maxTokens": 350
+  },
+  {
+    "id": "document-analyzer",
+    "name": "Smart Document Analyzer",
+    "tab": "Documents",
+    "status": "complete",
+    "description": "Paste/scan text or PDF → AI generates summary, key concepts, definitions, topic, follow-up questions. Saved docs reusable for quiz/flashcard/exam generation.",
+    "files": [
+      "FinalProject/Features/DocumentAnalyzer/DocumentAnalyzerView.swift",
+      "FinalProject/Features/DocumentAnalyzer/DocumentAnalyzerViewModel.swift"
+    ],
+    "services": [
+      "GroqService.shared.analyzeDocument(title:text:)",
+      "NoteScannerService.recognizeText(from:)"
+    ]
+  },
+  {
+    "id": "scan-and-solve",
+    "name": "Scan & Solve",
+    "tab": "Documents",
+    "status": "complete",
+    "description": "Photo of physical textbook question → on-device Vision OCR → Groq step-by-step solution. Accessible via card inside DocumentAnalyzerView.",
+    "files": [
+      "FinalProject/Features/DocumentAnalyzer/DocumentAnalyzerView.swift",
+      "FinalProject/Features/DocumentAnalyzer/DocumentAnalyzerViewModel.swift"
+    ],
+    "services": [
+      "GroqService.shared.solveProblem(_:)",
+      "NoteScannerService.recognizeText(from:)"
+    ],
+    "model": "llama-3.3-70b-versatile",
+    "temperature": 0.2,
+    "maxTokens": 1000
+  },
+  {
+    "id": "quiz-generator",
+    "name": "AI Quiz Generator",
+    "tab": "Learn → Quizzes",
+    "status": "complete",
+    "description": "Topic or document → AI multiple-choice quiz. Per-question countdown timer. Focus-camera monitor runs invisibly during session.",
+    "files": [
+      "FinalProject/Features/Learn/Quiz/QuizView.swift",
+      "FinalProject/Features/Learn/Quiz/QuizSessionView.swift",
+      "FinalProject/Features/Learn/Quiz/QuizViewModel.swift",
+      "FinalProject/Features/Learn/Quiz/QuizReviewView.swift",
+      "FinalProject/Features/FocusCamera/QuizFocusMonitor.swift",
+      "FinalProject/Features/FocusCamera/FocusCameraService.swift"
+    ],
+    "services": [
+      "GroqService.shared.generateQuiz(topic:difficulty:count:context:)"
+    ],
+    "difficulties": ["beginner", "intermediate", "advanced"],
+    "questionCounts": [5, 10, 15]
+  },
+  {
+    "id": "exam-mode",
+    "name": "Exam Mode",
+    "tab": "Learn → Quizzes",
+    "status": "complete",
+    "description": "Timed locked exam. Anti-cheat via scenePhase.background detection. Can be generated from a typed topic OR from an analyzed document. AI debrief after completion.",
+    "files": [
+      "FinalProject/Features/Learn/Quiz/ExamModeView.swift",
+      "FinalProject/Features/Learn/Quiz/ExamModeViewModel.swift"
+    ],
+    "services": [
+      "GroqService.shared.generateQuiz(topic:difficulty:count:context:)",
+      "GroqService.shared.generateExamDebrief(topic:wrongQuestions:)"
+    ],
+    "features": [
+      "scenePhase anti-cheat (background only)",
+      "interactiveDismissDisabled lockdown",
+      "document-grounded question generation",
+      "countdown timer with auto-submit"
+    ]
+  },
+  {
+    "id": "flashcard-generator",
+    "name": "Flashcard Generator",
+    "tab": "Learn → Flashcards",
+    "status": "complete",
+    "description": "AI-generated flashcard decks from topic or document text. Swipe-based spaced repetition review.",
+    "files": [
+      "FinalProject/Features/Learn/Flashcards/FlashcardsView.swift",
+      "FinalProject/Features/Learn/Flashcards/FlashcardSessionView.swift",
+      "FinalProject/Features/Learn/Flashcards/FlashcardViewModel.swift"
+    ],
+    "services": [
+      "GroqService.shared.generateFlashcards(topic:count:)"
+    ]
+  },
+  {
+    "id": "study-coach",
+    "name": "AI Study Coach",
+    "tab": "Tutor → Coach",
+    "status": "complete",
+    "description": "CrewAI-powered daily mission generator. Returns motivational message + 3 actionable study tasks. Cached per calendar day in LearningStore.",
+    "files": [
+      "FinalProject/Features/StudyCoach/StudyCoachView.swift",
+      "FinalProject/Features/StudyCoach/StudyCoachViewModel.swift"
+    ],
+    "services": [
+      "CrewAIService.shared.getDailyCoach()",
+      "crew_backend/main.py → POST /study/daily-coach",
+      "crew_backend/crew.py → DailyCoachCrew"
+    ]
+  },
+  {
+    "id": "analytics",
+    "name": "Learning Analytics Dashboard",
+    "tab": "Progress",
+    "status": "complete",
+    "description": "Visualizes quiz scores, flashcard reviews, study streak, weekly activity bar chart, and subject performance breakdown. Data sourced from LearningStore.",
+    "files": [
+      "FinalProject/Features/Analytics/AnalyticsView.swift"
+    ],
+    "services": ["LearningStore (read-only)"]
+  },
+  {
+    "id": "dashboard",
+    "name": "Home Dashboard",
+    "tab": "Home",
+    "status": "complete",
+    "description": "Summary of recent activity, Today's Mission card from daily coach, quick-action cards to each module.",
+    "files": [
+      "FinalProject/Features/Dashboard/DashboardView.swift"
+    ],
+    "services": ["LearningStore (read-only)", "CrewAIService.shared.getDailyCoach()"]
+  },
+  {
+    "id": "auth",
+    "name": "Authentication",
+    "tab": "N/A (gate screen)",
+    "status": "complete",
+    "description": "Firebase Email/Password auth. Login and registration screens. Session persisted via FirebaseAuth state listener.",
+    "files": [
+      "FinalProject/Features/Auth/LoginView.swift",
+      "FinalProject/Features/Auth/RegisterView.swift",
+      "FinalProject/Services/FirebaseAuthService.swift"
+    ],
+    "services": ["FirebaseAuthService.shared"]
+  }
+]

@@ -5,8 +5,8 @@ struct LearnHubView: View {
     @State private var selectedTab = 0
     @Namespace private var tabNS
 
-    private let tabs = ["Quizzes", "Flashcards", "Timer"]
-    private let subtitles = ["Test your knowledge", "Active recall practice", "Focus & take breaks"]
+    private let tabs = ["Quizzes", "Flashcards"]
+    private let subtitles = ["Test your knowledge", "Active recall practice"]
 
     var body: some View {
         NavigationStack {
@@ -23,13 +23,8 @@ struct LearnHubView: View {
                             .transition(.asymmetric(
                                 insertion: .move(edge: .leading),
                                 removal:   .move(edge: .trailing)))
-                    case 1:
-                        FlashcardsView()
-                            .transition(.asymmetric(
-                                insertion: selectedTab > 1 ? .move(edge: .leading) : .move(edge: .trailing),
-                                removal:   selectedTab > 1 ? .move(edge: .trailing) : .move(edge: .leading)))
                     default:
-                        TimerView()
+                        FlashcardsView()
                             .transition(.asymmetric(
                                 insertion: .move(edge: .trailing),
                                 removal:   .move(edge: .leading)))
@@ -75,10 +70,6 @@ struct LearnHubView: View {
                     }
                 } label: {
                     HStack(spacing: 5) {
-                        if i == 2 {
-                            Image(systemName: "timer")
-                                .font(.system(size: 11, weight: .semibold))
-                        }
                         Text(tabs[i])
                             .font(StudyFont.tiny)
                             .fontWeight(.semibold)
@@ -90,8 +81,8 @@ struct LearnHubView: View {
                         Group {
                             if selectedTab == i {
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .fill(i == 2 ? AnyShapeStyle(StudyTheme.shortBreakColor) : AnyShapeStyle(StudyTheme.accentGradient))
-                                    .shadow(color: (i == 2 ? StudyTheme.shortBreakColor : StudyTheme.accent).opacity(0.4), radius: 6, y: 2)
+                                    .fill(AnyShapeStyle(StudyTheme.accentGradient))
+                                    .shadow(color: StudyTheme.accent.opacity(0.4), radius: 6, y: 2)
                                     .matchedGeometryEffect(id: "learnTab", in: tabNS)
                             }
                         }

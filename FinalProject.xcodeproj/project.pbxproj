@@ -52,6 +52,9 @@
 		SCSTDY024SCSTDY024SCBLDF /* FlashcardsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY024SCSTDY024SCSTDY /* FlashcardsViewModel.swift */; };
 		SCSTDY025SCSTDY025SCBLDF /* FlashcardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY025SCSTDY025SCSTDY /* FlashcardsView.swift */; };
 		SCSTDY026SCSTDY026SCBLDF /* FlashcardReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCSTDY026SCSTDY026SCSTDY /* FlashcardReviewView.swift */; };
+		EXAMMVM001EXAMMVM001BLDF /* ExamModeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EXAMMVM001EXAMMVM001STDY /* ExamModeViewModel.swift */; };
+		EXAMMVW001EXAMMVW001BLDF /* ExamModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EXAMMVW001EXAMMVW001STDY /* ExamModeView.swift */; };
+		NTSLST001NTSLST001BLDF /* StudyNotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTSLST001NTSLST001STDY /* StudyNotesListView.swift */; };
 		SPCHFRMWK001SPCHFRMWK_BF /* Speech.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = SPCHFRMWK001SPCHFRMWK_RF /* Speech.framework */; };
 		SPCHSVC001SPCHSVC001BLDF /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPCHSVC001SPCHSVC001STDY /* SpeechService.swift */; };
 		SUBJMG01SUBJMG01BLDF /* SubjectManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SUBJMG01SUBJMG01STDY /* SubjectManagementView.swift */; };
@@ -124,6 +127,9 @@
 		SCSTDY024SCSTDY024SCSTDY /* FlashcardsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardsViewModel.swift; sourceTree = "<group>"; };
 		SCSTDY025SCSTDY025SCSTDY /* FlashcardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardsView.swift; sourceTree = "<group>"; };
 		SCSTDY026SCSTDY026SCSTDY /* FlashcardReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardReviewView.swift; sourceTree = "<group>"; };
+		EXAMMVM001EXAMMVM001STDY /* ExamModeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExamModeViewModel.swift; sourceTree = "<group>"; };
+		EXAMMVW001EXAMMVW001STDY /* ExamModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExamModeView.swift; sourceTree = "<group>"; };
+		NTSLST001NTSLST001STDY /* StudyNotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyNotesListView.swift; sourceTree = "<group>"; };
 		SPCHFRMWK001SPCHFRMWK_RF /* Speech.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Speech.framework; path = System/Library/Frameworks/Speech.framework; sourceTree = SDKROOT; };
 		SPCHSVC001SPCHSVC001STDY /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
 		SUBJMG01SUBJMG01STDY /* SubjectManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectManagementView.swift; sourceTree = "<group>"; };
@@ -271,6 +277,7 @@
 			children = (
 				SCSTDY018SCSTDY018SCSTDY /* DocumentAnalyzerView.swift */,
 				SCSTDY020SCSTDY020SCSTDY /* DocumentAnalyzerViewModel.swift */,
+				NTSLST001NTSLST001STDY /* StudyNotesListView.swift */,
 			);
 			path = DocumentAnalyzer;
 			sourceTree = "<group>";
@@ -340,6 +347,8 @@
 				SCSTDY023SCSTDY023SCSTDY /* QuizSessionView.swift */,
 				SCSTDY021SCSTDY021SCSTDY /* QuizViewModel.swift */,
 				QZRVW001QZRVW001STDY /* QuizReviewView.swift */,
+				EXAMMVM001EXAMMVM001STDY /* ExamModeViewModel.swift */,
+				EXAMMVW001EXAMMVW001STDY /* ExamModeView.swift */,
 			);
 			path = Quiz;
 			sourceTree = "<group>";
@@ -555,6 +564,9 @@
 				SCSTDY024SCSTDY024SCBLDF /* FlashcardsViewModel.swift in Sources */,
 				SCSTDY025SCSTDY025SCBLDF /* FlashcardsView.swift in Sources */,
 				SCSTDY026SCSTDY026SCBLDF /* FlashcardReviewView.swift in Sources */,
+				EXAMMVM001EXAMMVM001BLDF /* ExamModeViewModel.swift in Sources */,
+				EXAMMVW001EXAMMVW001BLDF /* ExamModeView.swift in Sources */,
+				NTSLST001NTSLST001BLDF /* StudyNotesListView.swift in Sources */,
 				HLTHSVC001HLTHSVC001BLDF /* HealthKitService.swift in Sources */,
 				SPCHSVC001SPCHSVC001BLDF /* SpeechService.swift in Sources */,
 				FBSVC001FBSVC001FBBLDF /* FirebaseAuthService.swift in Sources */,

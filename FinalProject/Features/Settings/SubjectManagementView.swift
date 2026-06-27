@@ -284,8 +284,3 @@ struct SubjectEditSheet: View {
     }
 }
 
-// MARK: - View Extension helper
-
-extension View {
-    func eraseToAnyView() -> AnyView { AnyView(self) }
-}

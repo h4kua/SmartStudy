@@ -1,10 +1,13 @@
 import SwiftUI
+import Combine
 
 struct QuizSessionView: View {
     @EnvironmentObject var store: LearningStore
     @ObservedObject var vm: QuizViewModel
     @StateObject private var focusMonitor = QuizFocusMonitor()
     @State private var showFullReview = false
+
+    private let questionTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         ZStack {
@@ -35,15 +38,26 @@ struct QuizSessionView: View {
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: vm.showResults)
         .animation(.easeInOut(duration: 0.3), value: focusMonitor.awaySeconds >= 8)
+        // Per-question countdown ticker
+        .onReceive(questionTimer) { _ in
+            guard !vm.showResults, !vm.showExplanation, vm.selectedAnswer == nil else { return }
+            if vm.questionTimeRemaining > 0 {
+                vm.questionTimeRemaining -= 1
+            } else {
+                vm.timeoutCurrentQuestion(store: store)
+            }
+        }
+        // Reset timer whenever the question changes
+        .onChange(of: vm.currentIndex) { _ in vm.resetQuestionTimer() }
+        .onChange(of: vm.showResults) { isResults in
+            if isResults { focusMonitor.stop() }
+        }
         // Start focus monitor for NEW sessions only
         .task {
             if !vm.showResults {
+                vm.resetQuestionTimer()
                 await focusMonitor.start()
             }
-        }
-        // Stop when results appear (snapshot final stats)
-        .onChange(of: vm.showResults) { isResults in
-            if isResults { focusMonitor.stop() }
         }
         // Clean up if user exits mid-quiz
         .onDisappear { focusMonitor.stop() }
@@ -81,6 +95,7 @@ struct QuizSessionView: View {
         VStack(spacing: 0) {
             quizHeader
             progressBar
+            questionTimerBar
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: StudySpacing.large) {
@@ -119,6 +134,17 @@ struct QuizSessionView: View {
                     .foregroundStyle(StudyTheme.secondaryText)
             }
             Spacer()
+
+            // Countdown badge
+            if !vm.showResults {
+                Text("\(vm.questionTimeRemaining)")
+                    .font(.system(size: 13, weight: .black, design: .rounded))
+                    .foregroundStyle(timerColor)
+                    .frame(width: 32, height: 32)
+                    .background(timerColor.opacity(0.12))
+                    .clipShape(Circle())
+                    .animation(.easeInOut(duration: 0.3), value: timerColor == StudyTheme.danger)
+            }
 
             // Voice feedback toggle
             Button { vm.toggleVoiceFeedback() } label: {
@@ -177,6 +203,34 @@ struct QuizSessionView: View {
             }
         }
         .frame(height: 3)
+    }
+
+    // --- Per-question countdown timer bar ---
+
+    private var timerFraction: Double {
+        guard vm.selectedAnswer == nil else { return 0 }
+        return Double(vm.questionTimeRemaining) / Double(QuizViewModel.questionTimeLimit)
+    }
+
+    private var timerColor: Color {
+        switch timerFraction {
+        case 0.5...: return StudyTheme.success
+        case 0.25...: return StudyTheme.warning
+        default:      return StudyTheme.danger
+        }
+    }
+
+    private var questionTimerBar: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Rectangle().fill(StudyTheme.surface2)
+                Rectangle()
+                    .fill(timerColor)
+                    .frame(width: geo.size.width * timerFraction)
+                    .animation(.linear(duration: 1), value: vm.questionTimeRemaining)
+            }
+        }
+        .frame(height: 2)
     }
 
     // --- Question card ---

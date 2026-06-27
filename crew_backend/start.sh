@@ -44,11 +44,20 @@ echo "📦  Installing dependencies..."
 pip install -q --upgrade pip
 pip install -q -r requirements.txt
 
-# ── 5. Launch server ─────────────────────────────────────────
-echo ""
-echo "🚀  Starting CrewAI backend on http://localhost:8000"
-echo "    Docs: http://localhost:8000/docs"
-echo "    Press Ctrl+C to stop."
+# ── 5. Disable OpenTelemetry before Python starts ────────────
+# CrewAI ships with OpenTelemetry tracing that tries to push spans
+# to an OTLP collector. Without these, you get noisy timeout errors
+# on every request and the "Exception ignored in atexit" on Ctrl+C.
+export OTEL_SDK_DISABLED=true
+export OTEL_TRACES_EXPORTER=none
+export OTEL_METRICS_EXPORTER=none
+export OTEL_LOGS_EXPORTER=none
+export CREWAI_DISABLE_TELEMETRY=1
+
+# ── 6. Launch server ─────────────────────────────────────────
+echo "Starting CrewAI backend on http://localhost:8000"
+echo "Docs: http://localhost:8000/docs"
+echo "Press Ctrl+C to stop."
 echo ""
 
 uvicorn main:app --reload --host 0.0.0.0 --port 8000

@@ -131,6 +131,8 @@ struct QuizSession: Identifiable, Codable {
 // ============================================================
 
 /// A single flashcard with front (question/term) and back (answer/definition).
+/// SM-2 spaced-repetition fields are decoded with fallback defaults so existing
+/// saved decks continue to load after the upgrade.
 struct Flashcard: Identifiable, Codable {
     var id: UUID = UUID()
     var front: String
@@ -140,6 +142,11 @@ struct Flashcard: Identifiable, Codable {
     var reviewCount: Int  = 0
     var knewItCount: Int  = 0
     var lastReviewed: Date?
+    // SM-2 spaced-repetition
+    var easeFactor: Double = 2.5
+    var srInterval: Int    = 1        // days until next review
+    var nextReviewDate: Date = Date()
+    var consecutiveCorrect: Int = 0
 
     var masteryPercent: Double {
         guard reviewCount > 0 else { return 0 }
@@ -147,6 +154,26 @@ struct Flashcard: Identifiable, Codable {
     }
 
     var isMastered: Bool { reviewCount > 0 && masteryPercent >= 0.7 }
+
+    var isDueForReview: Bool { Date() >= nextReviewDate }
+}
+
+extension Flashcard {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id           = try c.decode(UUID.self,                      forKey: .id)
+        front        = try c.decode(String.self,                    forKey: .front)
+        back         = try c.decode(String.self,                    forKey: .back)
+        category     = try c.decode(String.self,                    forKey: .category)
+        difficulty   = try c.decode(QuizQuestion.Difficulty.self,   forKey: .difficulty)
+        reviewCount  = (try? c.decodeIfPresent(Int.self,  forKey: .reviewCount))  ?? 0
+        knewItCount  = (try? c.decodeIfPresent(Int.self,  forKey: .knewItCount))  ?? 0
+        lastReviewed = try? c.decodeIfPresent(Date.self,  forKey: .lastReviewed)
+        easeFactor   = (try? c.decodeIfPresent(Double.self, forKey: .easeFactor)) ?? 2.5
+        srInterval   = (try? c.decodeIfPresent(Int.self,   forKey: .srInterval))  ?? 1
+        nextReviewDate = (try? c.decodeIfPresent(Date.self, forKey: .nextReviewDate)) ?? Date()
+        consecutiveCorrect = (try? c.decodeIfPresent(Int.self, forKey: .consecutiveCorrect)) ?? 0
+    }
 }
 
 /// A named collection of flashcards on a single topic.
@@ -175,6 +202,76 @@ struct FlashcardDeck: Identifiable, Codable {
     }
 
     var totalReviews: Int { cards.reduce(0) { $0 + $1.reviewCount } }
+}
+
+// ============================================================
+// MARK: - Study Notes (saved from scanner or manual entry)
+// ============================================================
+
+struct StudyNote: Identifiable, Codable {
+    var id: UUID        = UUID()
+    var title: String
+    var content: String
+    var subject: String?
+    var pageCount: Int  = 1
+    var createdDate: Date = Date()
+
+    var wordCount: Int { content.split(separator: " ").count }
+    var preview: String { String(content.prefix(140)) }
+    var isToday: Bool { Calendar.current.isDateInToday(createdDate) }
+}
+
+// ============================================================
+// MARK: - Exam Session (timed, locked exam mode)
+// ============================================================
+
+struct ExamSession: Identifiable, Codable {
+    var id: UUID = UUID()
+    var title: String
+    var subject: String?
+    var difficulty: QuizQuestion.Difficulty
+    var questions: [QuizQuestion]
+    var userAnswers: [Int]               // -1 = not answered yet
+    var timeLimitSeconds: Int
+    var timeUsedSeconds: Int    = 0
+    var antiCheatWarnings: Int  = 0
+    var createdDate: Date       = Date()
+    var completedDate: Date?
+    var aiDebrief: String?
+
+    var score: Int {
+        zip(questions, userAnswers)
+            .filter { q, a in q.correctIndex == a }
+            .count
+    }
+    var totalQuestions: Int { questions.count }
+    var percentage: Double {
+        guard totalQuestions > 0 else { return 0 }
+        return Double(score) / Double(totalQuestions)
+    }
+    var isCompleted: Bool { completedDate != nil }
+
+    var gradeLabel: String {
+        switch percentage {
+        case 0.9...:  return "Excellent"
+        case 0.75...: return "Good"
+        case 0.6...:  return "Fair"
+        default:      return "Needs Review"
+        }
+    }
+    var gradeColor: Color {
+        switch percentage {
+        case 0.9...:  return StudyTheme.success
+        case 0.75...: return StudyTheme.accent
+        case 0.6...:  return StudyTheme.warning
+        default:      return StudyTheme.danger
+        }
+    }
+    var timeUsedString: String {
+        let m = timeUsedSeconds / 60
+        let s = timeUsedSeconds % 60
+        return String(format: "%02d:%02d", m, s)
+    }
 }
 
 // ============================================================
@@ -215,6 +312,96 @@ extension Color {
             green: Double((rgb >> 8)  & 0xFF) / 255,
             blue:  Double( rgb        & 0xFF) / 255
         )
+    }
+}
+
+// ============================================================
+// MARK: - Daily Coach (AI-generated daily missions)
+// ============================================================
+
+struct DailyCoachAction: Identifiable, Codable {
+    var id: UUID = UUID()
+    let type: String        // "quiz" | "flashcard" | "exam"
+    let title: String
+    let subject: String
+    let topic: String
+    let reason: String
+    let questionCount: Int?
+    let cardCount: Int?
+    let durationMin: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case type, title, subject, topic, reason
+        case questionCount = "question_count"
+        case cardCount     = "card_count"
+        case durationMin   = "duration_min"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id      = UUID()
+        type    = try c.decode(String.self, forKey: .type)
+        title   = try c.decode(String.self, forKey: .title)
+        subject = try c.decode(String.self, forKey: .subject)
+        topic   = try c.decode(String.self, forKey: .topic)
+        reason  = try c.decode(String.self, forKey: .reason)
+        // LLMs sometimes return numeric fields as JSON strings ("5" instead of 5).
+        // Try Int first; fall back to parsing a String.
+        questionCount = Self.flexInt(c, key: .questionCount)
+        cardCount     = Self.flexInt(c, key: .cardCount)
+        durationMin   = Self.flexInt(c, key: .durationMin)
+    }
+
+    private static func flexInt(_ c: KeyedDecodingContainer<CodingKeys>, key: CodingKeys) -> Int? {
+        if let v = try? c.decodeIfPresent(Int.self, forKey: key) { return v }
+        if let s = try? c.decodeIfPresent(String.self, forKey: key) { return Int(s) }
+        return nil
+    }
+
+    init(id: UUID = UUID(), type: String, title: String, subject: String,
+         topic: String, reason: String, questionCount: Int? = nil,
+         cardCount: Int? = nil, durationMin: Int? = nil) {
+        self.id = id; self.type = type; self.title = title
+        self.subject = subject; self.topic = topic; self.reason = reason
+        self.questionCount = questionCount; self.cardCount = cardCount
+        self.durationMin = durationMin
+    }
+
+    var estimatedTime: String {
+        if let m = durationMin   { return "\(m) min" }
+        if let n = questionCount { return "\(n) Qs" }
+        if let n = cardCount     { return "\(n) cards" }
+        return "~10 min"
+    }
+
+    var iconName: String {
+        switch type {
+        case "quiz":      return "checkmark.circle.fill"
+        case "flashcard": return "rectangle.on.rectangle.fill"
+        case "exam":      return "timer"
+        default:          return "star.fill"
+        }
+    }
+
+    var actionColor: Color {
+        switch type {
+        case "quiz":      return StudyTheme.accent
+        case "flashcard": return StudyTheme.longBreakColor
+        case "exam":      return StudyTheme.warning
+        default:          return StudyTheme.secondaryText
+        }
+    }
+}
+
+struct DailyCoachResponse: Codable {
+    let success: Bool
+    let morningMessage: String?
+    let actions: [DailyCoachAction]?
+
+    enum CodingKeys: String, CodingKey {
+        case success
+        case morningMessage = "morning_message"
+        case actions
     }
 }
 

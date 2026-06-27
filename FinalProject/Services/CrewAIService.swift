@@ -1,5 +1,20 @@
 import Foundation
 
+// MARK: - Backend URL
+
+/// Single source of truth for the backend server URL.
+/// Update the physical-device IP here if your Mac's WiFi IP changes
+/// (run `ipconfig getifaddr en0` in Terminal to find the current IP).
+enum BackendConfig {
+    static let baseURL: String = {
+        #if targetEnvironment(simulator)
+        return "http://localhost:8000"
+        #else
+        return "http://10.24.162.130:8000"
+        #endif
+    }()
+}
+
 // MARK: - Request Models
 
 struct CrewWeeklyPlanRequest: Encodable {
@@ -34,6 +49,52 @@ struct CrewPerformanceRequest: Encodable {
         case quizHistory  = "quiz_history"
         case subjects
         case streakDays   = "streak_days"
+    }
+}
+
+// MARK: - Daily Coach Request
+
+struct DailyCoachRequest: Encodable {
+    let subjects: [String]
+    let quizHistory: [CrewWeeklyPlanRequest.QuizItem]
+    let flashcardDecks: [FlashcardDeckItem]
+    let examSessions: [ExamItem]
+    let notes: [NotePreview]
+    let streakDays: Int
+    let totalStudyMinutes: Int
+
+    struct NotePreview: Encodable {
+        let title: String
+        let preview: String   // first ~300 chars of note content
+    }
+
+    struct FlashcardDeckItem: Encodable {
+        let title: String
+        let masteryPercent: Double
+        let dueCount: Int
+        let totalCards: Int
+        enum CodingKeys: String, CodingKey {
+            case title
+            case masteryPercent = "mastery_percent"
+            case dueCount       = "due_count"
+            case totalCards     = "total_cards"
+        }
+    }
+
+    struct ExamItem: Encodable {
+        let topic: String
+        let score: Double
+        let difficulty: String
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case subjects
+        case quizHistory       = "quiz_history"
+        case flashcardDecks    = "flashcard_decks"
+        case examSessions      = "exam_sessions"
+        case notes
+        case streakDays        = "streak_days"
+        case totalStudyMinutes = "total_study_minutes"
     }
 }
 
@@ -78,8 +139,7 @@ final class CrewAIService: ObservableObject {
 
     static let shared = CrewAIService()
 
-    // Change to your Mac's LAN IP (e.g. "192.168.1.5") when running on a real device.
-    private let baseURL = "http://localhost:8000"
+    private let baseURL = BackendConfig.baseURL
     private let timeout: TimeInterval = 120   // agents can take ~30-45 s
 
     @Published var isLoading = false
@@ -155,6 +215,59 @@ final class CrewAIService: ObservableObject {
         return resp.review
     }
 
+    // MARK: - Daily Coach
+
+    func getDailyCoach(store: LearningStore) async throws -> DailyCoachResponse {
+        isLoading = true
+        defer { isLoading = false }
+
+        let quizItems = store.quizSessions.prefix(10).map { s in
+            CrewWeeklyPlanRequest.QuizItem(
+                subject: s.subject ?? s.title,
+                score: Int((s.percentage * 100).rounded()),
+                difficulty: s.difficulty.rawValue,
+                topic: s.title
+            )
+        }
+
+        let deckItems = store.flashcardDecks.map { deck in
+            DailyCoachRequest.FlashcardDeckItem(
+                title: deck.title,
+                masteryPercent: deck.overallMastery * 100,
+                dueCount: deck.cards.filter(\.isDueForReview).count,
+                totalCards: deck.totalCards
+            )
+        }
+
+        let examItems = store.examSessions.prefix(5).map { exam in
+            DailyCoachRequest.ExamItem(
+                topic: exam.title,
+                score: exam.percentage * 100,
+                difficulty: exam.difficulty.rawValue
+            )
+        }
+
+        // Send note titles + content preview so AI recommends real topics from documents
+        let notePreviews = store.studyNotes.prefix(6).map { note in
+            DailyCoachRequest.NotePreview(
+                title: note.title,
+                preview: String(note.content.prefix(300))
+            )
+        }
+
+        let body = DailyCoachRequest(
+            subjects: store.subjects.map(\.name),
+            quizHistory: Array(quizItems),
+            flashcardDecks: deckItems,
+            examSessions: Array(examItems),
+            notes: Array(notePreviews),
+            streakDays: store.currentStreak,
+            totalStudyMinutes: store.totalStudyMinutes
+        )
+
+        return try await post("/study/daily-coach", body: body)
+    }
+
     // MARK: - Generic POST helper
 
     private func post<B: Encodable, R: Decodable>(_ endpoint: String, body: B) async throws -> R {
@@ -189,6 +302,10 @@ final class CrewAIService: ObservableObject {
         do {
             return try JSONDecoder().decode(R.self, from: data)
         } catch {
+            // Print the raw response so decode failures are diagnosable in Xcode console
+            if let raw = String(data: data, encoding: .utf8) {
+                print("⚠️ CrewAI decode failed for \(endpoint). Raw response:\n\(raw.prefix(800))")
+            }
             throw CrewAIError.decodingError(error.localizedDescription)
         }
     }

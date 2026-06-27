@@ -23,6 +23,11 @@ final class QuizViewModel: ObservableObject {
     @Published var showExplanation = false
     @Published var showResults     = false
 
+    // MARK: - Per-question timer (30 s countdown, resets each question)
+
+    @Published var questionTimeRemaining: Int = 30
+    static let questionTimeLimit = 30
+
     // MARK: - Voice feedback
 
     @Published var voiceFeedbackEnabled: Bool = true
@@ -48,6 +53,24 @@ final class QuizViewModel: ObservableObject {
 
     var answeredCount: Int {
         activeSession?.userAnswers.filter { $0 != -1 }.count ?? 0
+    }
+
+    // MARK: - Timer helpers
+
+    func resetQuestionTimer() {
+        questionTimeRemaining = QuizViewModel.questionTimeLimit
+    }
+
+    /// Called by the View when the countdown hits 0 — marks question as timed out.
+    func timeoutCurrentQuestion(store: LearningStore) {
+        guard selectedAnswer == nil else { return }
+        selectedAnswer  = -1     // sentinel: timed out (no option matches -1)
+        showExplanation = true
+        if voiceFeedbackEnabled,
+           let q = currentQuestion,
+           let correct = q.options[safe: q.correctIndex] {
+            speak("Time's up! Correct answer: \(correct)")
+        }
     }
 
     // MARK: - Generate new quiz
@@ -77,6 +100,43 @@ final class QuizViewModel: ObservableObject {
             store.addQuizSession(session)
             beginSession(session)
             showGenerateSheet = false
+        } catch {
+            errorMessage = (error as? GroqError)?.errorDescription ?? error.localizedDescription
+        }
+        isGenerating = false
+    }
+
+    /// Generates a quiz from a specific topic + optional note content (used by AI coach actions).
+    /// When context is provided, questions are generated FROM the note content, not general knowledge.
+    func generateQuizFromContent(
+        topic: String,
+        count: Int,
+        context: String?,
+        store: LearningStore
+    ) async {
+        let trimmed = topic.trimmingCharacters(in: .whitespacesAndNewlines)
+        isGenerating = true
+        errorMessage = nil
+
+        do {
+            let questions = try await GroqService.shared.generateQuiz(
+                topic: trimmed.isEmpty ? "General" : trimmed,
+                difficulty: difficulty,
+                count: count,
+                context: context
+            )
+            guard !questions.isEmpty else { throw GroqError.emptyResponse }
+
+            let title = context != nil ? "\(trimmed) (from Notes)" : trimmed
+            let session = QuizSession(
+                title: title,
+                subject: nil,
+                difficulty: difficulty,
+                questions: questions,
+                userAnswers: Array(repeating: -1, count: questions.count)
+            )
+            store.addQuizSession(session)
+            beginSession(session)
         } catch {
             errorMessage = (error as? GroqError)?.errorDescription ?? error.localizedDescription
         }
@@ -152,9 +212,10 @@ final class QuizViewModel: ObservableObject {
         if isLastQuestion {
             finishSession(store: store)
         } else {
-            currentIndex    += 1
-            selectedAnswer   = nil
-            showExplanation  = false
+            currentIndex        += 1
+            selectedAnswer       = nil
+            showExplanation      = false
+            resetQuestionTimer()
         }
     }
 

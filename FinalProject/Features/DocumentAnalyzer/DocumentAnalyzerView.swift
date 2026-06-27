@@ -5,6 +5,8 @@ import UniformTypeIdentifiers
 struct DocumentAnalyzerView: View {
     @EnvironmentObject var store: LearningStore
     @StateObject private var vm = DocumentAnalyzerViewModel()
+    @State private var showNotesSheet = false
+    @State private var showSolveSheet = false
 
     var body: some View {
         NavigationStack {
@@ -51,6 +53,13 @@ struct DocumentAnalyzerView: View {
         .sheet(isPresented: $vm.showGenerateSheet) {
             generateSheet
         }
+        .sheet(isPresented: $showNotesSheet) {
+            StudyNotesListView()
+                .environmentObject(store)
+        }
+        .sheet(isPresented: $showSolveSheet) {
+            SolveProblemSheet()
+        }
         // Note Scanner — image picker sheet
         .sheet(isPresented: $vm.showScanPicker) {
             ImagePickerView(sourceType: vm.scanSourceType) { image in
@@ -95,6 +104,42 @@ struct DocumentAnalyzerView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: StudySpacing.large) {
                 pageHeader(subtitle: "Analyze your study materials")
+
+                // Scan & Solve entry card
+                Button { showSolveSheet = true } label: {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(StudyTheme.warning.opacity(0.15))
+                                .frame(width: 44, height: 44)
+                            Image(systemName: "camera.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(StudyTheme.warning)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Scan & Solve")
+                                .font(StudyFont.subtitle)
+                                .foregroundStyle(StudyTheme.primaryText)
+                            Text("Photo a question from your textbook — AI solves it step by step")
+                                .font(StudyFont.caption)
+                                .foregroundStyle(StudyTheme.secondaryText)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(StudyTheme.tertiaryText)
+                    }
+                    .padding(StudySpacing.medium)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(StudyTheme.surface)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(StudyTheme.warning.opacity(0.4), lineWidth: 1.5)
+                            )
+                    )
+                }
 
                 // Title field
                 VStack(alignment: .leading, spacing: StudySpacing.small) {
@@ -185,6 +230,11 @@ struct DocumentAnalyzerView: View {
                     errorCard(err)
                 }
 
+                // My Notes quick-access
+                if !store.studyNotes.isEmpty {
+                    notesPreviewSection
+                }
+
                 // Analyze button
                 Button {
                     Task { await vm.analyze(store: store) }
@@ -214,6 +264,44 @@ struct DocumentAnalyzerView: View {
             }
             .padding(.horizontal, StudySpacing.large)
             .padding(.bottom, StudySpacing.xxLarge)
+        }
+    }
+
+    private var notesPreviewSection: some View {
+        VStack(alignment: .leading, spacing: StudySpacing.small) {
+            HStack {
+                Text("My Notes")
+                    .font(StudyFont.subtitle)
+                    .foregroundStyle(StudyTheme.primaryText)
+                Spacer()
+                Button("See All") { showNotesSheet = true }
+                    .font(StudyFont.caption)
+                    .foregroundStyle(StudyTheme.accent)
+            }
+            ForEach(store.studyNotes.prefix(2)) { note in
+                HStack(alignment: .top, spacing: StudySpacing.small) {
+                    Image(systemName: "note.text")
+                        .font(.system(size: 13))
+                        .foregroundStyle(StudyTheme.accent)
+                        .padding(8)
+                        .background(StudyTheme.accentSoft)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(note.title)
+                            .font(StudyFont.caption)
+                            .foregroundStyle(StudyTheme.primaryText)
+                            .lineLimit(1)
+                        Text(note.preview)
+                            .font(StudyFont.tiny)
+                            .foregroundStyle(StudyTheme.tertiaryText)
+                            .lineLimit(2)
+                    }
+                    Spacer()
+                }
+                .padding(StudySpacing.small)
+                .background(StudyTheme.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
         }
     }
 
@@ -277,6 +365,7 @@ struct DocumentAnalyzerView: View {
                     if !doc.definitions.isEmpty { definitionsCard(doc) }
                     if !doc.suggestedQuestions.isEmpty { questionsCard(doc) }
                     generateActionsRow
+                    saveAsNoteButton
                 }
 
                 if let err = vm.errorMessage {
@@ -363,6 +452,23 @@ struct DocumentAnalyzerView: View {
                 }
             }
         }
+    }
+
+    // --- Save as Note ---
+
+    private var saveAsNoteButton: some View {
+        Button {
+            vm.saveAsNote(store: store)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "bookmark.fill")
+                Text("Save as Note")
+                    .font(StudyFont.subtitle)
+            }
+            .frame(maxWidth: .infinity).frame(height: 52)
+        }
+        .buttonStyle(GhostStudyButtonStyle())
+        .disabled(vm.isGenerating)
     }
 
     // --- Generate action buttons ---
@@ -611,5 +717,310 @@ struct DocumentAnalyzerView: View {
                 .shadow(color: StudyTheme.success.opacity(0.4), radius: 12, y: 4)
         )
         .padding(.horizontal, StudySpacing.large)
+    }
+}
+
+// MARK: - Scan & Solve Sheet
+
+struct SolveProblemSheet: View {
+    @StateObject private var vm = SolveProblemViewModel()
+    @Environment(\.dismiss) private var dismiss
+    @State private var showFullText = false
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                StudyTheme.backgroundGradient.ignoresSafeArea()
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: StudySpacing.large) {
+                        if vm.answer != nil {
+                            resultView
+                        } else if vm.capturedImage != nil {
+                            processingView
+                        } else {
+                            idleView
+                        }
+                    }
+                    .padding(StudySpacing.large)
+                    .padding(.bottom, StudySpacing.xxLarge)
+                }
+            }
+            .navigationTitle("Scan & Solve")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                        .foregroundStyle(StudyTheme.secondaryText)
+                }
+                if vm.answer != nil {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("New Problem") { withAnimation { vm.reset() } }
+                            .foregroundStyle(StudyTheme.warning)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $vm.showImagePicker) {
+            ImagePickerView(sourceType: vm.sourceType) { image in
+                Task { await vm.scanAndSolve(image) }
+            }
+        }
+    }
+
+    // MARK: - Idle (no photo yet)
+
+    private var idleView: some View {
+        VStack(spacing: StudySpacing.xLarge) {
+            VStack(spacing: 12) {
+                Image(systemName: "camera.circle.fill")
+                    .font(.system(size: 72))
+                    .foregroundStyle(StudyTheme.warning)
+                    .padding(.top, StudySpacing.xLarge)
+                Text("Point camera at a question")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(StudyTheme.primaryText)
+                    .multilineTextAlignment(.center)
+                Text("Take a photo of any question from your textbook, exam paper, or handwritten notes — the AI will solve it step by step.")
+                    .font(StudyFont.body)
+                    .foregroundStyle(StudyTheme.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            VStack(spacing: StudySpacing.medium) {
+                // Primary — big camera button
+                if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                    Button {
+                        vm.sourceType = .camera
+                        vm.showImagePicker = true
+                    } label: {
+                        VStack(spacing: 10) {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 36, weight: .semibold))
+                            Text("Take Photo")
+                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                            Text("Point camera at a question")
+                                .font(StudyFont.caption)
+                                .opacity(0.82)
+                        }
+                        .foregroundStyle(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 120)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(StudyTheme.warning)
+                                .shadow(color: StudyTheme.warning.opacity(0.45), radius: 16, y: 6)
+                        )
+                    }
+                }
+
+                // Secondary — photo library
+                Button {
+                    vm.sourceType = .photoLibrary
+                    vm.showImagePicker = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "photo.on.rectangle.fill")
+                            .font(.system(size: 20))
+                        Text("Choose from Photos")
+                            .font(StudyFont.subtitle)
+                    }
+                    .foregroundStyle(StudyTheme.primaryText)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(StudyTheme.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(StudyTheme.surfaceStroke, lineWidth: 1)
+                    )
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+                tipRow(icon: "sun.max.fill",    text: "Use good lighting for best results")
+                tipRow(icon: "textformat",      text: "Works with printed and handwritten text")
+                tipRow(icon: "globe",           text: "Supports English and Indonesian")
+                tipRow(icon: "function",        text: "Handles math, science, and text questions")
+            }
+            .padding(StudySpacing.medium)
+            .background(StudyTheme.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+    }
+
+    // MARK: - Processing (scanning / solving)
+
+    private var processingView: some View {
+        VStack(spacing: StudySpacing.large) {
+            if let img = vm.capturedImage {
+                Image(uiImage: img)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 240)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .shadow(color: .black.opacity(0.3), radius: 10, y: 4)
+            }
+
+            if vm.isScanning {
+                statusCard(title: "Reading text...", subtitle: "On-device OCR — your photo never leaves the device")
+            } else if vm.isSolving {
+                statusCard(title: "Solving...", subtitle: "AI is working through the problem step by step")
+
+                if !vm.detectedText.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Detected text")
+                            .font(StudyFont.tiny)
+                            .foregroundStyle(StudyTheme.secondaryText)
+                            .tracking(0.8)
+                        Text(vm.detectedText)
+                            .font(StudyFont.caption)
+                            .foregroundStyle(StudyTheme.secondaryText)
+                            .lineLimit(5)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(StudySpacing.medium)
+                    .background(StudyTheme.surface2, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+            }
+
+            if let error = vm.errorMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundStyle(StudyTheme.danger)
+                    Text(error)
+                        .font(StudyFont.caption)
+                        .foregroundStyle(StudyTheme.danger)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(StudySpacing.medium)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(StudyTheme.danger.opacity(0.10), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                Button("Try Again") { withAnimation { vm.reset() } }
+                    .buttonStyle(PrimaryStudyButtonStyle())
+            }
+        }
+    }
+
+    // MARK: - Result
+
+    private var resultView: some View {
+        VStack(spacing: StudySpacing.large) {
+            // Header row: thumbnail + word count
+            if let img = vm.capturedImage {
+                HStack(spacing: 12) {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 72, height: 54)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Problem solved")
+                            .font(StudyFont.subtitle)
+                            .foregroundStyle(StudyTheme.primaryText)
+                        Text("\(vm.detectedText.split(separator: " ").count) words detected")
+                            .font(StudyFont.caption)
+                            .foregroundStyle(StudyTheme.secondaryText)
+                    }
+                    Spacer()
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(StudyTheme.success)
+                }
+                .padding(StudySpacing.medium)
+                .background(StudyTheme.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+
+            // Detected question (collapsible)
+            if !vm.detectedText.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Button {
+                        withAnimation(.spring(response: 0.3)) { showFullText.toggle() }
+                    } label: {
+                        HStack {
+                            Text("Detected Question")
+                                .font(StudyFont.tiny)
+                                .foregroundStyle(StudyTheme.secondaryText)
+                                .tracking(0.8)
+                            Spacer()
+                            Image(systemName: showFullText ? "chevron.up" : "chevron.down")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(StudyTheme.tertiaryText)
+                        }
+                    }
+                    if showFullText {
+                        Text(vm.detectedText)
+                            .font(StudyFont.caption)
+                            .foregroundStyle(StudyTheme.secondaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                }
+                .padding(StudySpacing.medium)
+                .background(StudyTheme.surface2, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .animation(.spring(response: 0.3), value: showFullText)
+            }
+
+            // AI solution
+            if let ans = vm.answer {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "brain.fill")
+                            .foregroundStyle(StudyTheme.warning)
+                        Text("AI Solution")
+                            .font(StudyFont.subtitle)
+                            .foregroundStyle(StudyTheme.primaryText)
+                    }
+                    Text(ans)
+                        .font(StudyFont.body)
+                        .foregroundStyle(StudyTheme.primaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .lineSpacing(5)
+                }
+                .padding(StudySpacing.medium)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(StudyTheme.surface)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(StudyTheme.warning.opacity(0.4), lineWidth: 1.5)
+                        )
+                )
+            }
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func statusCard(title: String, subtitle: String) -> some View {
+        HStack(spacing: 14) {
+            ProgressView()
+                .tint(StudyTheme.warning)
+                .scaleEffect(1.2)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(StudyFont.subtitle)
+                    .foregroundStyle(StudyTheme.primaryText)
+                Text(subtitle)
+                    .font(StudyFont.caption)
+                    .foregroundStyle(StudyTheme.secondaryText)
+            }
+            Spacer()
+        }
+        .padding(StudySpacing.medium)
+        .background(StudyTheme.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private func tipRow(icon: String, text: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundStyle(StudyTheme.warning.opacity(0.85))
+                .frame(width: 18)
+            Text(text)
+                .font(StudyFont.caption)
+                .foregroundStyle(StudyTheme.secondaryText)
+        }
     }
 }

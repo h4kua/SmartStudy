@@ -144,22 +144,20 @@ struct FlashcardReviewView: View {
                         guard vm.isFlipped else { return }
                         let threshold: CGFloat = 80
                         if value.translation.width > threshold {
-                            let feedback = UINotificationFeedbackGenerator()
-                            feedback.notificationOccurred(.success)
+                            UINotificationFeedbackGenerator().notificationOccurred(.success)
                             withAnimation(.spring(response: 0.3)) { dragOffset = 400 }
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                guard !isDismissed else { return }   // BUG FIX
+                                guard !isDismissed else { return }
                                 dragOffset = 0
-                                vm.markKnew(store: store)
+                                vm.markCard(quality: 0, store: store)  // Knew It
                             }
                         } else if value.translation.width < -threshold {
-                            let feedback = UINotificationFeedbackGenerator()
-                            feedback.notificationOccurred(.warning)
+                            UINotificationFeedbackGenerator().notificationOccurred(.warning)
                             withAnimation(.spring(response: 0.3)) { dragOffset = -400 }
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                guard !isDismissed else { return }   // BUG FIX
+                                guard !isDismissed else { return }
                                 dragOffset = 0
-                                vm.markDidNotKnow(store: store)
+                                vm.markCard(quality: 2, store: store)  // Forgot
                             }
                         } else {
                             withAnimation(.spring(response: 0.3)) { dragOffset = 0 }
@@ -242,39 +240,60 @@ struct FlashcardReviewView: View {
                 }
                 .transition(.opacity)
             } else {
-                HStack(spacing: StudySpacing.medium) {
-                    // Didn't know
-                    Button { vm.markDidNotKnow(store: store) } label: {
-                        VStack(spacing: 4) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 20, weight: .bold))
-                            Text("Didn't know")
-                                .font(StudyFont.tiny)
-                        }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity).frame(height: 64)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(StudyTheme.danger)
-                                .shadow(color: StudyTheme.danger.opacity(0.35), radius: 10, y: 4)
-                        )
-                    }
+                VStack(spacing: StudySpacing.small) {
+                    Text("How well did you know this?")
+                        .font(StudyFont.tiny)
+                        .foregroundStyle(StudyTheme.tertiaryText)
 
-                    // Knew it
-                    Button { vm.markKnew(store: store) } label: {
-                        VStack(spacing: 4) {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 20, weight: .bold))
-                            Text("Knew it!")
-                                .font(StudyFont.tiny)
+                    HStack(spacing: StudySpacing.small) {
+                        // Forgot
+                        Button { vm.markCard(quality: 2, store: store) } label: {
+                            VStack(spacing: 4) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 16, weight: .bold))
+                                Text("Forgot")
+                                    .font(StudyFont.tiny)
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity).frame(height: 60)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(StudyTheme.danger)
+                                    .shadow(color: StudyTheme.danger.opacity(0.35), radius: 8, y: 3)
+                            )
                         }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity).frame(height: 64)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(StudyTheme.success)
-                                .shadow(color: StudyTheme.success.opacity(0.35), radius: 10, y: 4)
-                        )
+                        // Unsure
+                        Button { vm.markCard(quality: 1, store: store) } label: {
+                            VStack(spacing: 4) {
+                                Image(systemName: "questionmark")
+                                    .font(.system(size: 16, weight: .bold))
+                                Text("Unsure")
+                                    .font(StudyFont.tiny)
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity).frame(height: 60)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(StudyTheme.warning)
+                                    .shadow(color: StudyTheme.warning.opacity(0.35), radius: 8, y: 3)
+                            )
+                        }
+                        // Knew it
+                        Button { vm.markCard(quality: 0, store: store) } label: {
+                            VStack(spacing: 4) {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 16, weight: .bold))
+                                Text("Knew it!")
+                                    .font(StudyFont.tiny)
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity).frame(height: 60)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(StudyTheme.success)
+                                    .shadow(color: StudyTheme.success.opacity(0.35), radius: 8, y: 3)
+                            )
+                        }
                     }
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))

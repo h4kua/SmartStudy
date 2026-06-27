@@ -3,6 +3,7 @@ import SwiftUI
 struct QuizView: View {
     @EnvironmentObject var store: LearningStore
     @StateObject private var vm = QuizViewModel()
+    @State private var showExamSetup = false
 
     private var incompleteSessions: [QuizSession] {
         store.quizSessions.filter { !$0.isCompleted }
@@ -14,34 +15,85 @@ struct QuizView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: StudySpacing.large) {
-                newQuizButton
+                actionButtons
                 if !incompleteSessions.isEmpty { incompleteSection }
                 if !completedSessions.isEmpty  { completedSection  }
-                if store.quizSessions.isEmpty  { emptyState        }
+                if store.quizSessions.isEmpty && store.examSessions.isEmpty { emptyState }
+                if !store.examSessions.isEmpty { examHistorySection }
             }
             .padding(.horizontal, StudySpacing.large)
             .padding(.bottom, StudySpacing.xxLarge)
         }
         .sheet(isPresented: $vm.showGenerateSheet) { generateSheet }
+        .sheet(isPresented: $showExamSetup) {
+            ExamSetupView()
+                .environmentObject(store)
+        }
         .fullScreenCover(isPresented: $vm.showSession) {
             QuizSessionView(vm: vm)
                 .environmentObject(store)
         }
     }
 
-    // MARK: - New quiz button
+    // MARK: - Action buttons
 
-    private var newQuizButton: some View {
-        Button { vm.showGenerateSheet = true } label: {
-            HStack(spacing: StudySpacing.small) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 17, weight: .semibold))
-                Text("New Quiz")
-                    .font(StudyFont.subtitle)
+    private var actionButtons: some View {
+        VStack(spacing: StudySpacing.small) {
+            Button { vm.showGenerateSheet = true } label: {
+                HStack(spacing: StudySpacing.small) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 17, weight: .semibold))
+                    Text("New Quiz")
+                        .font(StudyFont.subtitle)
+                }
+                .frame(maxWidth: .infinity).frame(height: 52)
             }
-            .frame(maxWidth: .infinity).frame(height: 52)
+            .buttonStyle(PrimaryStudyButtonStyle())
+
+            Button { showExamSetup = true } label: {
+                HStack(spacing: StudySpacing.small) {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                    Text("Start Exam Mode")
+                        .font(StudyFont.subtitle)
+                }
+                .frame(maxWidth: .infinity).frame(height: 52)
+            }
+            .buttonStyle(DangerStudyButtonStyle())
         }
-        .buttonStyle(PrimaryStudyButtonStyle())
+    }
+
+    // MARK: - Exam history section
+
+    private var examHistorySection: some View {
+        StudyCard(title: "Exam History") {
+            VStack(spacing: StudySpacing.small) {
+                ForEach(store.examSessions) { exam in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(exam.title)
+                                .font(StudyFont.caption)
+                                .foregroundStyle(StudyTheme.primaryText)
+                                .lineLimit(1)
+                            Text(exam.isCompleted
+                                 ? "\(exam.score)/\(exam.totalQuestions) · \(exam.gradeLabel)"
+                                 : "Not completed")
+                                .font(StudyFont.tiny)
+                                .foregroundStyle(exam.isCompleted ? exam.gradeColor : StudyTheme.tertiaryText)
+                        }
+                        Spacer()
+                        if exam.isCompleted {
+                            Text(exam.percentage.percentString)
+                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                                .foregroundStyle(exam.gradeColor)
+                        }
+                    }
+                    .padding(StudySpacing.small)
+                    .background(StudyTheme.background.opacity(0.5))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+            }
+        }
     }
 
     // MARK: - Incomplete sessions

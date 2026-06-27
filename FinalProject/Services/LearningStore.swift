@@ -18,7 +18,13 @@ final class LearningStore: ObservableObject {
     @Published var quizSessions:      [QuizSession]      = []
     @Published var flashcardDecks:    [FlashcardDeck]    = []
     @Published var analyzedDocuments: [AnalyzedDocument] = []
+    @Published var studyNotes:        [StudyNote]        = []
+    @Published var examSessions:      [ExamSession]      = []
     @Published var totalFocusMinutes: Int                = 0
+
+    // Daily coach — in-memory cache only (re-fetches after app quit or new calendar day)
+    @Published var cachedDailyCoach: DailyCoachResponse? = nil
+    private var dailyCoachFetchDate: Date? = nil
 
     // =========================================================
     // MARK: - UserDefaults keys
@@ -29,6 +35,8 @@ final class LearningStore: ObservableObject {
         static let quizzes       = "mentor.quizSessions"
         static let decks         = "mentor.flashcardDecks"
         static let documents     = "mentor.analyzedDocuments"
+        static let notes         = "mentor.studyNotes"
+        static let exams         = "mentor.examSessions"
         static let focusMinutes  = "mentor.totalFocusMinutes"
     }
 
@@ -113,6 +121,101 @@ final class LearningStore: ObservableObject {
     func deleteAnalyzedDocument(id: UUID) {
         analyzedDocuments.removeAll { $0.id == id }
         saveDocuments()
+    }
+
+    // =========================================================
+    // MARK: - Study Notes
+    // =========================================================
+
+    func addStudyNote(_ note: StudyNote) {
+        studyNotes.insert(note, at: 0)
+        if studyNotes.count > 200 { studyNotes = Array(studyNotes.prefix(200)) }
+        saveNotes()
+    }
+
+    func updateStudyNote(_ note: StudyNote) {
+        guard let idx = studyNotes.firstIndex(where: { $0.id == note.id }) else { return }
+        studyNotes[idx] = note
+        saveNotes()
+    }
+
+    func deleteStudyNote(id: UUID) {
+        studyNotes.removeAll { $0.id == id }
+        saveNotes()
+    }
+
+    // =========================================================
+    // MARK: - Exam Sessions
+    // =========================================================
+
+    func addExamSession(_ exam: ExamSession) {
+        examSessions.insert(exam, at: 0)
+        if examSessions.count > 50 { examSessions = Array(examSessions.prefix(50)) }
+        saveExams()
+    }
+
+    func updateExamSession(_ exam: ExamSession) {
+        guard let idx = examSessions.firstIndex(where: { $0.id == exam.id }) else { return }
+        examSessions[idx] = exam
+        saveExams()
+    }
+
+    func deleteExamSession(id: UUID) {
+        examSessions.removeAll { $0.id == id }
+        saveExams()
+    }
+
+    // MARK: - Daily Coach Cache
+
+    var isDailyCoachStale: Bool {
+        guard let d = dailyCoachFetchDate else { return true }
+        return !Calendar.current.isDateInToday(d)
+    }
+
+    func storeDailyCoach(_ response: DailyCoachResponse) {
+        cachedDailyCoach = response
+        dailyCoachFetchDate = Date()
+    }
+
+    // =========================================================
+    // MARK: - SM-2 Spaced Repetition
+    // =========================================================
+
+    /// Updates a single flashcard using the SM-2 algorithm.
+    /// - Parameter quality: 0 = Knew It, 1 = Unsure, 2 = Forgot
+    func applySpacedRepetition(cardId: UUID, inDeck deckId: UUID, quality: Int) {
+        guard let deckIdx = flashcardDecks.firstIndex(where: { $0.id == deckId }),
+              let cardIdx = flashcardDecks[deckIdx].cards.firstIndex(where: { $0.id == cardId })
+        else { return }
+
+        var card = flashcardDecks[deckIdx].cards[cardIdx]
+
+        // Map quality 0/1/2 → SM-2 q values 5/3/1
+        let q = [5, 3, 1][min(quality, 2)]
+
+        // Update ease factor
+        let newEF = card.easeFactor + (0.1 - Double(5 - q) * (0.08 + Double(5 - q) * 0.02))
+        card.easeFactor = max(1.3, newEF)
+
+        // Update interval
+        if q < 3 {
+            card.srInterval = 1
+            card.consecutiveCorrect = 0
+        } else {
+            switch card.consecutiveCorrect {
+            case 0:  card.srInterval = 1
+            case 1:  card.srInterval = 6
+            default: card.srInterval = max(1, Int((Double(card.srInterval) * card.easeFactor).rounded()))
+            }
+            card.consecutiveCorrect += 1
+        }
+
+        card.nextReviewDate = Calendar.current.date(
+            byAdding: .day, value: card.srInterval, to: Date()
+        ) ?? Date()
+
+        flashcardDecks[deckIdx].cards[cardIdx] = card
+        saveFlashcardDecks()
     }
 
     // =========================================================
@@ -246,7 +349,7 @@ final class LearningStore: ObservableObject {
             let date = cal.date(byAdding: .day, value: -daysAgo, to: Date()) ?? Date()
 
             let quizCount = quizSessions.filter {
-                cal.isDate($0.createdDate, inSameDayAs: date)
+                $0.isCompleted && cal.isDate($0.createdDate, inSameDayAs: date)
             }.count
 
             let deckCount = flashcardDecks.filter { deck in
@@ -268,19 +371,25 @@ final class LearningStore: ObservableObject {
         quizSessions      = []
         flashcardDecks    = []
         analyzedDocuments = []
+        studyNotes        = []
+        examSessions      = []
         saveQuizSessions()
         saveFlashcardDecks()
         saveDocuments()
+        saveNotes()
+        saveExams()
     }
 
     // =========================================================
     // MARK: - Persistence helpers
     // =========================================================
 
-    private func saveSubjects()      { save(subjects,          to: Key.subjects) }
-    private func saveQuizSessions()  { save(quizSessions,      to: Key.quizzes) }
-    private func saveFlashcardDecks(){ save(flashcardDecks,    to: Key.decks) }
+    private func saveSubjects()      { save(subjects,           to: Key.subjects) }
+    private func saveQuizSessions()  { save(quizSessions,       to: Key.quizzes) }
+    private func saveFlashcardDecks(){ save(flashcardDecks,     to: Key.decks) }
     private func saveDocuments()     { save(analyzedDocuments,  to: Key.documents) }
+    private func saveNotes()         { save(studyNotes,         to: Key.notes) }
+    private func saveExams()         { save(examSessions,       to: Key.exams) }
 
     /// Reuse encoder/decoder — creating them is expensive.
     private static let encoder = JSONEncoder()
@@ -308,8 +417,10 @@ final class LearningStore: ObservableObject {
 
     private func load() {
         subjects          = load([Subject].self,          from: Key.subjects)   ?? []
-        quizSessions      = load([QuizSession].self,      from: Key.quizzes)   ?? []
+        quizSessions      = load([QuizSession].self,      from: Key.quizzes)    ?? []
         flashcardDecks    = load([FlashcardDeck].self,    from: Key.decks)      ?? []
         analyzedDocuments = load([AnalyzedDocument].self, from: Key.documents)  ?? []
+        studyNotes        = load([StudyNote].self,        from: Key.notes)      ?? []
+        examSessions      = load([ExamSession].self,      from: Key.exams)      ?? []
     }
 }

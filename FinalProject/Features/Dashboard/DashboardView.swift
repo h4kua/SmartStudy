@@ -5,7 +5,9 @@ struct DashboardView: View {
     @Binding var selectedTab: Int
     @State private var showSettings    = false
     @State private var showStudyCoach  = false
-    @State private var appeared = false
+    @State private var appeared        = false
+    @State private var isFetchingPlan  = false
+    @State private var planFetchError: String?
 
     var body: some View {
         NavigationStack {
@@ -17,6 +19,11 @@ struct DashboardView: View {
                     quickActionsRow
                         .opacity(appeared ? 1 : 0)
                         .offset(y: appeared ? 0 : 12)
+                    // Daily Mission — shown when coach plan exists or can be fetched
+                    todaysMissionCard
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 12)
+
                     if !store.recentQuizSessions.isEmpty {
                         recentQuizzesCard
                             .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -265,6 +272,153 @@ struct DashboardView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Today's Mission Card
+
+    private var todaysMissionCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack {
+                HStack(spacing: 8) {
+                    Image(systemName: "target")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(StudyTheme.accent)
+                    Text("TODAY'S MISSIONS")
+                        .font(StudyFont.tiny)
+                        .fontWeight(.bold)
+                        .foregroundStyle(StudyTheme.secondaryText)
+                        .tracking(1.0)
+                }
+                Spacer()
+                Button { showStudyCoach = true } label: {
+                    Text("See All")
+                        .font(StudyFont.tiny)
+                        .foregroundStyle(StudyTheme.accent)
+                }
+            }
+            .padding(.bottom, StudySpacing.medium)
+
+            if isFetchingPlan {
+                HStack(spacing: 12) {
+                    ProgressView().tint(StudyTheme.accent)
+                    Text("AI agents generating your plan…")
+                        .font(StudyFont.caption)
+                        .foregroundStyle(StudyTheme.secondaryText)
+                    Spacer()
+                }
+                .padding(StudySpacing.medium)
+                .background(StudyTheme.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            } else if let coach = store.cachedDailyCoach, !store.isDailyCoachStale,
+                      let actions = coach.actions, !actions.isEmpty {
+                // Show mini action cards
+                VStack(spacing: 8) {
+                    ForEach(actions.prefix(3)) { action in
+                        missionRow(action)
+                    }
+                }
+                if let err = planFetchError {
+                    Text(err).font(StudyFont.tiny).foregroundStyle(StudyTheme.danger).padding(.top, 4)
+                }
+
+            } else {
+                // Not fetched yet
+                VStack(spacing: 12) {
+                    if let err = planFetchError {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(StudyTheme.warning)
+                            Text(err).font(StudyFont.tiny).foregroundStyle(StudyTheme.secondaryText)
+                        }
+                    } else {
+                        Text("Get your AI-powered study plan for today")
+                            .font(StudyFont.caption)
+                            .foregroundStyle(StudyTheme.secondaryText)
+                    }
+                    Button {
+                        Task { await fetchDailyMission() }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 13, weight: .semibold))
+                            Text("Get Today's Plan")
+                                .font(StudyFont.caption).fontWeight(.semibold)
+                        }
+                        .foregroundStyle(StudyTheme.accent)
+                        .padding(.horizontal, 16).padding(.vertical, 10)
+                        .background(StudyTheme.accent.opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(StudyTheme.accent.opacity(0.25), lineWidth: 1))
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(StudySpacing.medium)
+                .background(StudyTheme.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+        }
+        .padding(StudySpacing.medium)
+        .background(StudyTheme.surface.opacity(0.5))
+        .clipShape(RoundedRectangle(cornerRadius: StudyRadius.xLarge, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: StudyRadius.xLarge, style: .continuous)
+            .stroke(StudyTheme.surfaceStroke, lineWidth: 1))
+    }
+
+    private func missionRow(_ action: DailyCoachAction) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(action.actionColor.opacity(0.12))
+                    .frame(width: 36, height: 36)
+                Image(systemName: action.iconName)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(action.actionColor)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(action.title + " · " + action.subject)
+                    .font(StudyFont.caption).fontWeight(.semibold)
+                    .foregroundStyle(StudyTheme.primaryText)
+                    .lineLimit(1)
+                Text(action.reason)
+                    .font(StudyFont.tiny)
+                    .foregroundStyle(StudyTheme.tertiaryText)
+                    .lineLimit(1)
+            }
+            Spacer()
+            Text(action.estimatedTime)
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundStyle(action.actionColor)
+        }
+        .padding(10)
+        .background(StudyTheme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .onTapGesture { showStudyCoach = true }
+    }
+
+    private func fetchDailyMission() async {
+        guard !isFetchingPlan else { return }
+
+        // Check server first
+        let running = await CrewAIService.shared.isServerRunning()
+        guard running else {
+            planFetchError = "Server offline — start crew_backend first, then retry."
+            return
+        }
+
+        isFetchingPlan = true
+        planFetchError = nil
+        do {
+            let response = try await CrewAIService.shared.getDailyCoach(store: store)
+            withAnimation(.spring(response: 0.5)) {
+                store.storeDailyCoach(response)
+            }
+        } catch {
+            planFetchError = error.localizedDescription
+        }
+        isFetchingPlan = false
     }
 
     // MARK: - AI Coach Card

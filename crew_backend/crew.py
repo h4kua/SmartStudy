@@ -7,6 +7,12 @@ Two crews:
 """
 
 import os
+
+# Must be set before crewai import — otherwise CrewAI initialises
+# the OpenTelemetry SDK and tries to push spans to a missing OTLP endpoint.
+os.environ.setdefault("OTEL_SDK_DISABLED", "true")
+os.environ.setdefault("OPENTELEMETRY_EXPORTER_OTLP_ENDPOINT", "")
+
 import logging
 from crewai import Agent, Task, Crew, LLM
 
@@ -181,6 +187,102 @@ class StudyPlanCrew:
 
         result = crew.kickoff()
         return str(result)
+
+
+# ─────────────────────────────────────────────────────────────
+# MARK: DailyCoachCrew
+# ─────────────────────────────────────────────────────────────
+
+class DailyCoachCrew:
+    """
+    Single-agent crew that generates 3 daily study missions as structured JSON.
+    Returns a JSON string with morning_message + actions array.
+    """
+
+    def run(
+        self,
+        subjects: list[str],
+        quiz_history: list[dict],
+        flashcard_decks: list[dict],
+        exam_sessions: list[dict],
+        notes: list[dict],
+        streak_days: int,
+        total_study_minutes: int,
+    ) -> str:
+        llm = _llm()
+
+        # ── Build rich context ───────────────────────────────
+        quiz_rows = "\n".join(
+            f"  • {q['subject']}: {q['score']}% ({q['difficulty']}) — {q.get('topic', 'general')}"
+            for q in quiz_history[-10:]
+        ) or "  No quizzes yet"
+
+        deck_rows = "\n".join(
+            f"  • {d['title']}: {d.get('mastery_percent', 0):.0f}% mastered, {d.get('due_count', 0)} cards due"
+            for d in flashcard_decks
+        ) or "  No decks yet"
+
+        exam_rows = "\n".join(
+            f"  • {e['topic']}: {e.get('score', 0):.0f}% ({e.get('difficulty', 'intermediate')})"
+            for e in exam_sessions[:5]
+        ) or "  No exams yet"
+
+        # Include actual note content previews so AI recommends real topics
+        note_rows = "\n".join(
+            f"  • \"{n['title']}\": {n.get('preview', '')[:200]}"
+            for n in notes[:6]
+        ) or "  No notes saved yet"
+
+        context = (
+            f"Subjects: {', '.join(subjects) or 'none'}\n"
+            f"Streak: {streak_days} day(s)  |  Total study time: {total_study_minutes} min\n\n"
+            f"Saved study notes (these are the student's actual learning materials):\n{note_rows}\n\n"
+            f"Recent quizzes:\n{quiz_rows}\n\n"
+            f"Flashcard decks:\n{deck_rows}\n\n"
+            f"Recent exams:\n{exam_rows}"
+        )
+
+        coach = Agent(
+            role="Daily Study Mission Planner",
+            goal=(
+                "Generate exactly 3 personalised daily study missions in valid JSON "
+                "based on the student's performance data, targeting their weakest areas."
+            ),
+            backstory=(
+                "You are an expert academic coach who creates engaging data-driven "
+                "daily missions. You respond with a single valid JSON object only — "
+                "no markdown, no backticks, no explanation before or after."
+            ),
+            llm=llm,
+            verbose=False,
+        )
+
+        task = Task(
+            description=(
+                f"Analyse this student data and create 3 personalised study missions:\n\n"
+                f"{context}\n\n"
+                "CRITICAL RULES FOR TOPICS:\n"
+                "- If the student has saved notes, use the EXACT note title as the topic for the quiz action.\n"
+                "- The topic field must match real content the student has studied (note titles, deck titles, or subjects).\n"
+                "- NEVER invent a topic that doesn't appear in the student data above.\n"
+                "- If there are no notes/decks/quizzes yet, use one of the subject names.\n\n"
+                "Respond with ONLY this JSON structure (no markdown, no extra text):\n"
+                '{"morning_message":"Personalised 1-2 sentence greeting (mention streak if >0)",'
+                '"actions":['
+                '{"type":"quiz","title":"Quick Quiz","subject":"real subject name","topic":"EXACT note title or subject from above","question_count":5,"reason":"why in 1 sentence"},'
+                '{"type":"flashcard","title":"Flashcard Sprint","subject":"real subject","topic":"EXACT deck title from above or subject name","card_count":8,"reason":"why in 1 sentence"},'
+                '{"type":"exam","title":"Exam Prep","subject":"real subject","topic":"EXACT note title or subject from above","duration_min":15,"reason":"why in 1 sentence"}'
+                ']}'
+            ),
+            agent=coach,
+            expected_output=(
+                "A single valid JSON object with morning_message (string) "
+                "and actions (array of exactly 3 items). Topics must match actual content from student data."
+            ),
+        )
+
+        crew = Crew(agents=[coach], tasks=[task], verbose=False)
+        return str(crew.kickoff())
 
 
 # ─────────────────────────────────────────────────────────────

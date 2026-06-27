@@ -76,10 +76,21 @@ struct FlashcardsView: View {
             }
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(deck.title)
-                    .font(StudyFont.subtitle)
-                    .foregroundStyle(StudyTheme.primaryText)
-                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    Text(deck.title)
+                        .font(StudyFont.subtitle)
+                        .foregroundStyle(StudyTheme.primaryText)
+                        .lineLimit(1)
+                    let due = vm.dueCount(for: deck)
+                    if due > 0 {
+                        Text("\(due) due")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(StudyTheme.danger)
+                            .clipShape(Capsule())
+                    }
+                }
                 HStack(spacing: 6) {
                     Text("\(deck.totalCards) cards")
                     if deck.totalReviews > 0 {

@@ -95,27 +95,30 @@ final class AITutorViewModel: ObservableObject {
         errorMessage = nil
         canRetry     = false
 
-        // OCR-aware prompt: tell Groq the input may be noisy
         let prompt = """
         The following text was extracted via OCR from a handwritten or printed math problem. \
-        OCR makes common math mistakes: superscripts become plain numbers (x² → x2), \
-        fractions may be split (1/2 → 1 2), × becomes x or *, integral signs may be missing, etc.
+        OCR commonly misreads math symbols:
+        - Superscripts flatten: x² → x2, n³ → n3
+        - Multiplication: × → x or X, · → .
+        - Division/fractions: ÷ → +, ½ → 1/2 or "1 2"
+        - Square roots: √ may disappear or become V
+        - Equals: = may become -, ≠ may become =
+        - Greek letters: θ → 0, π → n or TT
+        - Negative signs: −3 → 3 (sign dropped)
 
         Please:
-        1. Identify and correct any obvious OCR errors in the expression.
-        2. State the corrected problem clearly.
-        3. Solve it step-by-step with numbered steps, showing all working.
+        1. Identify and correct any OCR errors — show the corrected expression clearly.
+        2. Solve step-by-step with numbered steps. Show ALL working — do not skip algebra.
+        3. Verify your final answer by substituting back or checking units.
 
         OCR-extracted text:
         \(scannedText)
         """
 
-        let history = messages.suffix(8).map { ["role": $0.role, "content": $0.content] }
-
         do {
             let reply = try await GroqService.shared.chat(
                 system:      systemPrompt,
-                history:     Array(history),
+                history:     [],
                 userMessage: prompt,
                 maxTokens:   700
             )
@@ -154,7 +157,8 @@ final class AITutorViewModel: ObservableObject {
         guard let text = lastFailedText, !isLoading else { return }
         // Remove the error reply before retrying
         if let last = messages.last, last.role == "assistant",
-           last.content.hasPrefix("Sorry, I couldn't connect") {
+           (last.content.hasPrefix("Sorry, I couldn't connect") ||
+            last.content.hasPrefix("Could not reach the AI")) {
             messages.removeLast()
         }
         await sendMessage(text)

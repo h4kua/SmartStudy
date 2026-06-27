@@ -69,9 +69,12 @@ final class FlashcardsViewModel: ObservableObject {
 
     // MARK: - Start / restart review
 
+    /// Smart review: due cards first, then rest shuffled.
     func startReview(deck: FlashcardDeck) {
         activeDeck      = deck
-        reviewCards     = deck.cards.shuffled()
+        let due     = deck.cards.filter(\.isDueForReview).shuffled()
+        let notDue  = deck.cards.filter { !$0.isDueForReview }.shuffled()
+        reviewCards     = due + notDue
         reviewIndex     = 0
         isFlipped       = false
         sessionKnewCount = 0
@@ -81,7 +84,6 @@ final class FlashcardsViewModel: ObservableObject {
 
     func restartReview(store: LearningStore) {
         guard let deck = activeDeck else { return }
-        // Reload latest version from store
         let latest = store.flashcardDecks.first(where: { $0.id == deck.id }) ?? deck
         startReview(deck: latest)
     }
@@ -94,8 +96,44 @@ final class FlashcardsViewModel: ObservableObject {
         }
     }
 
-    func markKnew(store: LearningStore)       { advanceCard(knew: true,  store: store) }
-    func markDidNotKnow(store: LearningStore) { advanceCard(knew: false, store: store) }
+    /// quality: 0 = Knew It, 1 = Unsure, 2 = Forgot
+    func markCard(quality: Int, store: LearningStore) {
+        guard var deck = activeDeck, reviewIndex < reviewCards.count else { return }
+
+        var card = reviewCards[reviewIndex]
+        card.reviewCount += 1
+        card.lastReviewed = Date()
+        if quality == 0 {
+            card.knewItCount += 1
+            sessionKnewCount += 1
+        }
+        reviewCards[reviewIndex] = card
+
+        if let idx = deck.cards.firstIndex(where: { $0.id == card.id }) {
+            deck.cards[idx] = card
+        }
+        deck.lastReviewedDate = Date()
+
+        if isLastCard {
+            activeDeck = deck
+            store.updateFlashcardDeck(deck)
+            // Apply SM-2 for last card
+            store.applySpacedRepetition(cardId: card.id, inDeck: deck.id, quality: quality)
+            sessionComplete = true
+        } else {
+            activeDeck = deck
+            store.updateFlashcardDeck(deck)
+            store.applySpacedRepetition(cardId: card.id, inDeck: deck.id, quality: quality)
+            withAnimation(.easeInOut(duration: 0.25)) {
+                reviewIndex += 1
+                isFlipped = false
+            }
+        }
+    }
+
+    func markKnew(store: LearningStore)       { markCard(quality: 0, store: store) }
+    func markUnsure(store: LearningStore)     { markCard(quality: 1, store: store) }
+    func markDidNotKnow(store: LearningStore) { markCard(quality: 2, store: store) }
 
     // MARK: - Dismiss
 
@@ -108,43 +146,9 @@ final class FlashcardsViewModel: ObservableObject {
         sessionComplete  = false
     }
 
-    // MARK: - Private
+    // MARK: - Due count helper
 
-    private func advanceCard(knew: Bool, store: LearningStore) {
-        guard var deck = activeDeck, reviewIndex < reviewCards.count else { return }
-
-        // Update the card stats
-        var card = reviewCards[reviewIndex]
-        card.reviewCount += 1
-        card.lastReviewed = Date()
-        if knew {
-            card.knewItCount += 1
-            sessionKnewCount += 1
-        }
-        reviewCards[reviewIndex] = card
-
-        // Sync back into deck
-        if let idx = deck.cards.firstIndex(where: { $0.id == card.id }) {
-            deck.cards[idx] = card
-        }
-
-        // BUG FIX: always update lastReviewedDate on every card advance,
-        // not just the last card. Previously, quitting a partial review meant
-        // the deck's lastReviewedDate was never set — so partial reviews
-        // didn't count toward the streak calculation in LearningStore.hasActivity(on:).
-        deck.lastReviewedDate = Date()
-
-        if isLastCard {
-            activeDeck = deck
-            store.updateFlashcardDeck(deck)
-            sessionComplete = true
-        } else {
-            activeDeck = deck
-            store.updateFlashcardDeck(deck)
-            withAnimation(.easeInOut(duration: 0.25)) {
-                reviewIndex += 1
-                isFlipped = false
-            }
-        }
+    func dueCount(for deck: FlashcardDeck) -> Int {
+        deck.cards.filter(\.isDueForReview).count
     }
 }
